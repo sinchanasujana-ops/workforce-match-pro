@@ -6,30 +6,86 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CATEGORIES, type WorkerCategory } from "@/lib/mock-data";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useAuth";
 
-export const Route = createFileRoute("/post-job")({
+export const Route = createFileRoute("/_authenticated/post-job")({
   component: PostJobPage,
   head: () => ({
     meta: [
       { title: "Post a Job — KaamSetu" },
       { name: "description", content: "Hire skilled, semi-skilled or unskilled workers. AI matches your job to the best candidates instantly." },
+      { property: "og:title", content: "Post a Job — KaamSetu" },
+      { property: "og:description", content: "Reach thousands of verified blue-collar workers across India in minutes." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
 
 function PostJobPage() {
   const navigate = useNavigate();
+  const { profile, user } = useProfile();
   const [category, setCategory] = useState<WorkerCategory>("skilled");
   const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({
+    title: "",
+    employer_name: "",
+    location: "",
+    wage: "",
+    duration: "",
+    description: "",
+    skills: "",
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (profile?.company_name) setForm((f) => ({ ...f, employer_name: f.employer_name || profile.company_name! }));
+  }, [profile]);
+
+  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     setSubmitted(true);
+
+    const skills = form.skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 10);
+
+    const { error } = await supabase.from("jobs").insert({
+      employer_id: user.id,
+      title: form.title.trim().slice(0, 120),
+      category,
+      employer_name: form.employer_name.trim().slice(0, 120),
+      location: form.location.trim().slice(0, 120),
+      wage: form.wage.trim().slice(0, 80),
+      duration: form.duration.trim().slice(0, 80),
+      description: form.description.trim().slice(0, 2000),
+      skills,
+    });
+
+    if (error) {
+      setSubmitted(false);
+      toast.error(error.message);
+      return;
+    }
+
+    await supabase
+      .from("profiles")
+      .upsert(
+        { id: user.id, role: "employer" as const, company_name: form.employer_name.trim().slice(0, 120) },
+        { onConflict: "id" },
+      );
+
     toast.success("Job posted! AI is finding your best candidates…");
-    setTimeout(() => navigate({ to: "/jobs" }), 1400);
+    setTimeout(() => navigate({ to: "/dashboard" }), 900);
   };
 
   return (
@@ -80,27 +136,31 @@ function PostJobPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <Label htmlFor="title">Job title</Label>
-                  <Input id="title" required placeholder="Senior Electrician needed" className="mt-1.5 h-11" />
+                  <Input id="title" required value={form.title} onChange={set("title")} placeholder="Senior Electrician needed" className="mt-1.5 h-11" />
                 </div>
                 <div>
                   <Label htmlFor="company">Company name</Label>
-                  <Input id="company" required placeholder="Sunrise Constructions" className="mt-1.5 h-11" />
+                  <Input id="company" required value={form.employer_name} onChange={set("employer_name")} placeholder="Sunrise Constructions" className="mt-1.5 h-11" />
                 </div>
                 <div>
                   <Label htmlFor="loc">Job location</Label>
-                  <Input id="loc" required placeholder="Bengaluru, Karnataka" className="mt-1.5 h-11" />
+                  <Input id="loc" required value={form.location} onChange={set("location")} placeholder="Bengaluru, Karnataka" className="mt-1.5 h-11" />
                 </div>
                 <div>
                   <Label htmlFor="wage">Wage offered</Label>
-                  <Input id="wage" required placeholder="₹950 / day or ₹22,000 / month" className="mt-1.5 h-11" />
+                  <Input id="wage" required value={form.wage} onChange={set("wage")} placeholder="₹950 / day or ₹22,000 / month" className="mt-1.5 h-11" />
                 </div>
                 <div>
                   <Label htmlFor="dur">Duration</Label>
-                  <Input id="dur" required placeholder="6 months / Permanent" className="mt-1.5 h-11" />
+                  <Input id="dur" required value={form.duration} onChange={set("duration")} placeholder="6 months / Permanent" className="mt-1.5 h-11" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label htmlFor="skills">Skills needed (comma separated)</Label>
+                  <Input id="skills" value={form.skills} onChange={set("skills")} placeholder="Wiring, Panel installation, Safety certified" className="mt-1.5 h-11" />
                 </div>
                 <div className="sm:col-span-2">
                   <Label htmlFor="desc">Job description</Label>
-                  <Textarea id="desc" required rows={4} placeholder="Describe the work, skills required and any benefits like food, housing, etc." className="mt-1.5" />
+                  <Textarea id="desc" required rows={4} value={form.description} onChange={set("description")} placeholder="Describe the work, skills required and any benefits like food, housing, etc." className="mt-1.5" />
                 </div>
               </div>
 
