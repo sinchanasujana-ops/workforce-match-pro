@@ -9,7 +9,7 @@ import { useState } from "react";
 import { CheckCircle2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/signup")({
+export const Route = createFileRoute("/_authenticated/signup")({
   component: SignupPage,
   head: () => ({
     meta: [

@@ -10,7 +10,7 @@ import { useState } from "react";
 import { CheckCircle2, Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/post-job")({
+export const Route = createFileRoute("/_authenticated/post-job")({
   component: PostJobPage,
   head: () => ({
     meta: [
