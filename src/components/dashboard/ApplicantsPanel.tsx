@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { MapPin, Phone, Star, UserRound, Check, X, Sparkles } from "lucide-react";
+import { MapPin, Phone, Star, UserRound, Check, X, Sparkles, FileText, ShieldCheck } from "lucide-react";
+import { KIND_LABEL, formatSize, openDocument, type WorkerDocument } from "@/components/worker/WorkerDocuments";
 
 type ApplicationStatus = "pending" | "shortlisted" | "hired" | "rejected";
 
@@ -35,6 +36,7 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
   const [rows, setRows] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [docsByWorker, setDocsByWorker] = useState<Record<string, WorkerDocument[]>>({});
 
   useEffect(() => {
     if (jobIds.length === 0) {
@@ -67,6 +69,20 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
       const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
       setRows(apps.map((a) => ({ ...a, worker: (byId.get(a.worker_id) as Applicant["worker"]) ?? null })));
       setLoading(false);
+
+      if (workerIds.length) {
+        const { data: docs } = await supabase
+          .from("worker_documents")
+          .select("*")
+          .in("worker_id", workerIds)
+          .order("created_at", { ascending: false });
+        if (cancelled) return;
+        const grouped: Record<string, WorkerDocument[]> = {};
+        for (const d of (docs ?? []) as WorkerDocument[]) {
+          (grouped[d.worker_id] ??= []).push(d);
+        }
+        setDocsByWorker(grouped);
+      }
     };
     void load();
     return () => {
@@ -140,6 +156,32 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
               {a.message && <p className="mt-2 text-sm text-muted-foreground">“{a.message}”</p>}
             </div>
             <Badge className={`capitalize hover:bg-inherit ${STATUS_STYLES[a.status]}`}>{a.status}</Badge>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-border/70 bg-background p-3">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              Credentials
+            </p>
+            {(docsByWorker[a.worker_id]?.length ?? 0) === 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">No documents uploaded by this worker yet.</p>
+            ) : (
+              <ul className="mt-2 space-y-2">
+                {docsByWorker[a.worker_id]!.map((d) => (
+                  <li key={d.id} className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="flex min-w-0 items-center gap-2 text-sm">
+                      <FileText className="h-4 w-4 shrink-0 text-primary" />
+                      <span className="truncate">{d.label || d.file_name}</span>
+                      <Badge variant="secondary">{KIND_LABEL[d.kind]}</Badge>
+                      <span className="text-xs text-muted-foreground">{formatSize(d.file_size)}</span>
+                    </span>
+                    <Button size="sm" variant="outline" onClick={() => void openDocument(d.file_path)}>
+                      View document
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">

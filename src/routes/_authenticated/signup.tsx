@@ -10,6 +10,7 @@ import { CheckCircle2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useAuth";
+import { WorkerDocuments } from "@/components/worker/WorkerDocuments";
 
 export const Route = createFileRoute("/_authenticated/signup")({
   component: SignupPage,
@@ -156,6 +157,10 @@ function SignupPage() {
               <Link to="/dashboard" className="font-medium text-primary hover:underline">Go to dashboard</Link>
             </p>
           </form>
+
+          <div className="mt-6">
+            <WorkerDocuments userId={user?.id} />
+          </div>
         </section>
       </main>
       <Footer />
