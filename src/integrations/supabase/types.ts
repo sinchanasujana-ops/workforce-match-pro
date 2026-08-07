@@ -142,6 +142,45 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_documents: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          kind: Database["public"]["Enums"]["document_kind"]
+          label: string
+          mime_type: string | null
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          kind?: Database["public"]["Enums"]["document_kind"]
+          label?: string
+          mime_type?: string | null
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          kind?: Database["public"]["Enums"]["document_kind"]
+          label?: string
+          mime_type?: string | null
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -152,6 +191,7 @@ export type Database = {
     Enums: {
       app_role: "worker" | "employer"
       application_status: "pending" | "shortlisted" | "hired" | "rejected"
+      document_kind: "id_proof" | "certificate" | "other"
       worker_category: "skilled" | "semi-skilled" | "unskilled"
     }
     CompositeTypes: {
@@ -282,6 +322,7 @@ export const Constants = {
     Enums: {
       app_role: ["worker", "employer"],
       application_status: ["pending", "shortlisted", "hired", "rejected"],
+      document_kind: ["id_proof", "certificate", "other"],
       worker_category: ["skilled", "semi-skilled", "unskilled"],
     },
   },
