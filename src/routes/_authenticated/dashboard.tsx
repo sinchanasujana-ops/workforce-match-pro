@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useAuth";
 import { Briefcase, MapPin, IndianRupee, UserRound, Building2, Users } from "lucide-react";
 import { toast } from "sonner";
+import { ApplicantsPanel } from "@/components/dashboard/ApplicantsPanel";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -43,6 +44,19 @@ function DashboardPage() {
   const { profile, user, loading } = useProfile();
   const [applications, setApplications] = useState<MyApplication[]>([]);
   const [myJobs, setMyJobs] = useState<MyJob[]>([]);
+  const [withdrawing, setWithdrawing] = useState<string | null>(null);
+
+  const withdraw = async (id: string) => {
+    setWithdrawing(id);
+    const { error } = await supabase.from("applications").delete().eq("id", id);
+    setWithdrawing(null);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setApplications((as) => as.filter((a) => a.id !== id));
+    toast.success("Application withdrawn");
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -157,7 +171,19 @@ function DashboardPage() {
                       )}
                     </div>
                   </div>
-                  <Badge variant="secondary" className="capitalize">{a.status}</Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="capitalize">{a.status}</Badge>
+                    {a.status !== "hired" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={withdrawing === a.id}
+                        onClick={() => withdraw(a.id)}
+                      >
+                        Withdraw
+                      </Button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -185,6 +211,10 @@ function DashboardPage() {
                   </li>
                 ))}
               </ul>
+
+              <h2 className="mt-12 text-xl font-semibold">Applicants</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Shortlist, hire or reject workers who applied to your jobs.</p>
+              <ApplicantsPanel jobIds={myJobs.map((j) => j.id)} />
             </>
           )}
         </section>
