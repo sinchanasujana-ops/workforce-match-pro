@@ -227,10 +227,13 @@ export function WorkerDocuments({ userId }: { userId: string | undefined }) {
                     <FileText className="h-4 w-4 shrink-0 text-primary" />
                     {d.label || d.file_name}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {formatSize(d.file_size)} {d.file_size ? "· " : ""}
-                    {new Date(d.created_at).toLocaleDateString()}
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <VerificationBadge status={d.verification_status} note={d.verification_note} />
+                    <span className="text-xs text-muted-foreground">
+                      {formatSize(d.file_size)} {d.file_size ? "· " : ""}
+                      {new Date(d.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{KIND_LABEL[d.kind]}</Badge>
