@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.protect_document_verification() FROM PUBLIC, anon, authenticated;
