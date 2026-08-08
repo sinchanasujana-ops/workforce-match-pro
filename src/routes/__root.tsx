@@ -2,6 +2,9 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { useEffect } from "react";
+import { getStoredLanguage } from "@/i18n";
+import i18n from "@/i18n";
 
 function NotFoundComponent() {
   return (
@@ -30,11 +33,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "KaamSetu — AI Job Exchange for Blue-Collar Workers" },
+      { name: "description", content: "AI-powered employment exchange matching workers and employers across India." },
+      { name: "author", content: "KaamSetu" },
+      { property: "og:title", content: "KaamSetu" },
+      { property: "og:description", content: "AI-powered employment exchange for India's blue-collar workforce." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -66,6 +69,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    const stored = getStoredLanguage();
+    if (stored !== i18n.language) void i18n.changeLanguage(stored);
+  }, []);
+
   return (
     <>
       <Outlet />

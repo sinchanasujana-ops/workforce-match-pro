@@ -62,7 +62,9 @@ export type Database = {
           employer_name: string
           id: string
           is_active: boolean
+          job_type: Database["public"]["Enums"]["job_type"]
           location: string
+          monthly_pay: number
           skills: string[]
           title: string
           updated_at: string
@@ -77,7 +79,9 @@ export type Database = {
           employer_name?: string
           id?: string
           is_active?: boolean
+          job_type?: Database["public"]["Enums"]["job_type"]
           location?: string
+          monthly_pay?: number
           skills?: string[]
           title: string
           updated_at?: string
@@ -92,7 +96,9 @@ export type Database = {
           employer_name?: string
           id?: string
           is_active?: boolean
+          job_type?: Database["public"]["Enums"]["job_type"]
           location?: string
+          monthly_pay?: number
           skills?: string[]
           title?: string
           updated_at?: string
@@ -201,6 +207,7 @@ export type Database = {
       app_role: "worker" | "employer"
       application_status: "pending" | "shortlisted" | "hired" | "rejected"
       document_kind: "id_proof" | "certificate" | "other"
+      job_type: "full-time" | "part-time" | "daily-wage"
       verification_status: "pending" | "verified" | "rejected"
       worker_category: "skilled" | "semi-skilled" | "unskilled"
     }
@@ -333,6 +340,7 @@ export const Constants = {
       app_role: ["worker", "employer"],
       application_status: ["pending", "shortlisted", "hired", "rejected"],
       document_kind: ["id_proof", "certificate", "other"],
+      job_type: ["full-time", "part-time", "daily-wage"],
       verification_status: ["pending", "verified", "rejected"],
       worker_category: ["skilled", "semi-skilled", "unskilled"],
     },

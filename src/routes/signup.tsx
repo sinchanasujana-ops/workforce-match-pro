@@ -11,8 +11,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useAuth";
 import { WorkerDocuments } from "@/components/worker/WorkerDocuments";
+import { useTranslation } from "react-i18next";
 
-export const Route = createFileRoute("/_authenticated/signup")({
+export const Route = createFileRoute("/signup")({
   component: SignupPage,
   head: () => ({
     meta: [
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/signup")({
 
 function SignupPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile, user, loading } = useProfile();
   const [category, setCategory] = useState<WorkerCategory>("skilled");
   const [submitted, setSubmitted] = useState(false);
@@ -88,18 +90,16 @@ function SignupPage() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
               <Sparkles className="h-4 w-4" />
-              Free for workers, always
+              {t("home.freeForWorkers")}
             </div>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">Your worker profile</h1>
-            <p className="mt-3 text-muted-foreground">
-              Takes 2 minutes. Our AI then matches you to jobs nearby — automatically.
-            </p>
+            <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">{t("worker.heading")}</h1>
+            <p className="mt-3 text-muted-foreground">{t("worker.sub")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-10 rounded-3xl border border-border/70 bg-[image:var(--gradient-card)] p-6 shadow-soft sm:p-8">
             <div className="space-y-6">
               <div>
-                <Label className="mb-3 block text-base">I am a…</Label>
+                <Label className="mb-3 block text-base">{t("worker.iAm")}</Label>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {CATEGORIES.map((c) => {
                     const active = category === c.value;
@@ -115,7 +115,7 @@ function SignupPage() {
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold">{c.label}</span>
+                          <span className="font-semibold">{t(`categories.${c.value}`)}</span>
                           {active && <CheckCircle2 className="h-5 w-5 text-primary" />}
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">{c.examples}</p>
@@ -127,40 +127,52 @@ function SignupPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="name">Full name</Label>
+                  <Label htmlFor="name">{t("worker.fullName")}</Label>
                   <Input id="name" required value={form.full_name} onChange={set("full_name")} placeholder="Ramesh Kumar" className="mt-1.5 h-11" />
                 </div>
                 <div>
-                  <Label htmlFor="phone">Mobile number</Label>
+                  <Label htmlFor="phone">{t("worker.mobile")}</Label>
                   <Input id="phone" required type="tel" value={form.phone} onChange={set("phone")} placeholder="+91 98765 43210" className="mt-1.5 h-11" />
                 </div>
                 <div>
-                  <Label htmlFor="trade">Main trade / skill</Label>
+                  <Label htmlFor="trade">{t("worker.trade")}</Label>
                   <Input id="trade" required value={form.trade} onChange={set("trade")} placeholder="Electrician, Mason, Helper…" className="mt-1.5 h-11" />
                 </div>
                 <div>
-                  <Label htmlFor="experience">Years of experience</Label>
+                  <Label htmlFor="experience">{t("worker.experience")}</Label>
                   <Input id="experience" required type="number" min="0" value={form.experience_years} onChange={set("experience_years")} placeholder="3" className="mt-1.5 h-11" />
                 </div>
                 <div className="sm:col-span-2">
-                  <Label htmlFor="location">City / village</Label>
+                  <Label htmlFor="location">{t("worker.city")}</Label>
                   <Input id="location" required value={form.location} onChange={set("location")} placeholder="Pune, Maharashtra" className="mt-1.5 h-11" />
                 </div>
               </div>
             </div>
 
-            <Button type="submit" variant="hero" size="xl" className="mt-8 w-full" disabled={submitted || loading}>
-              {submitted ? "Saving profile…" : "Save profile & find matches"}
-            </Button>
-
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              <Link to="/dashboard" className="font-medium text-primary hover:underline">Go to dashboard</Link>
-            </p>
+            {user ? (
+              <>
+                <Button type="submit" variant="hero" size="xl" className="mt-8 w-full" disabled={submitted || loading}>
+                  {submitted ? t("worker.saving") : t("worker.save")}
+                </Button>
+                <p className="mt-4 text-center text-xs text-muted-foreground">
+                  <Link to="/dashboard" className="font-medium text-primary hover:underline">{t("worker.goToDashboard")}</Link>
+                </p>
+              </>
+            ) : (
+              <div className="mt-8 rounded-xl border border-primary/20 bg-primary/5 p-4 text-center">
+                <p className="text-sm text-muted-foreground">{t("worker.signInPrompt")}</p>
+                <Button asChild variant="hero" size="xl" className="mt-4 w-full">
+                  <Link to="/auth" search={{ redirect: "/signup" }}>{t("nav.signIn")}</Link>
+                </Button>
+              </div>
+            )}
           </form>
 
-          <div className="mt-6">
-            <WorkerDocuments userId={user?.id} />
-          </div>
+          {user && (
+            <div className="mt-6">
+              <WorkerDocuments userId={user.id} />
+            </div>
+          )}
         </section>
       </main>
       <Footer />

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,9 @@ import { CheckCircle2, Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 
-export const Route = createFileRoute("/_authenticated/post-job")({
+export const Route = createFileRoute("/post-job")({
   component: PostJobPage,
   head: () => ({
     meta: [
@@ -26,10 +27,24 @@ export const Route = createFileRoute("/_authenticated/post-job")({
   }),
 });
 
+const JOB_TYPES = ["full-time", "part-time", "daily-wage"] as const;
+type JobTypeValue = (typeof JOB_TYPES)[number];
+
+function estimateMonthlyPay(wage: string, jobType: JobTypeValue) {
+  const digits = wage.replace(/[^\d]/g, "");
+  const amount = Number(digits);
+  if (!amount) return 0;
+  if (jobType === "daily-wage" && amount < 5000) return Math.round(amount * 26);
+  if (jobType === "part-time" && amount < 5000) return Math.round(amount * 26);
+  return amount;
+}
+
 function PostJobPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile, user } = useProfile();
   const [category, setCategory] = useState<WorkerCategory>("skilled");
+  const [jobType, setJobType] = useState<JobTypeValue>("full-time");
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -53,16 +68,14 @@ function PostJobPage() {
     if (!user) return;
     setSubmitted(true);
 
-    const skills = form.skills
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .slice(0, 10);
+    const skills = form.skills.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 10);
 
     const { error } = await supabase.from("jobs").insert({
       employer_id: user.id,
       title: form.title.trim().slice(0, 120),
       category,
+      job_type: jobType,
+      monthly_pay: estimateMonthlyPay(form.wage, jobType),
       employer_name: form.employer_name.trim().slice(0, 120),
       location: form.location.trim().slice(0, 120),
       wage: form.wage.trim().slice(0, 80),
@@ -79,13 +92,10 @@ function PostJobPage() {
 
     await supabase
       .from("profiles")
-      .upsert(
-        { id: user.id, role: "employer" as const, company_name: form.employer_name.trim().slice(0, 120) },
-        { onConflict: "id" },
-      );
+      .upsert({ id: user.id, role: "employer" as const, company_name: form.employer_name.trim().slice(0, 120) }, { onConflict: "id" });
 
     toast.success("Job posted! AI is finding your best candidates…");
-    setTimeout(() => navigate({ to: "/dashboard" }), 900);
+    setTimeout(() => navigate({ to: "/jobs" }), 900);
   };
 
   return (
@@ -96,18 +106,16 @@ function PostJobPage() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1 text-sm font-medium text-accent-foreground">
               <Users className="h-4 w-4" />
-              Verified worker network
+              {t("home.verifiedEmployers")}
             </div>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">Post a job</h1>
-            <p className="mt-3 text-muted-foreground">
-              Reach thousands of pre-screened workers. AI shortlists the best matches in seconds.
-            </p>
+            <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">{t("employer.heading")}</h1>
+            <p className="mt-3 text-muted-foreground">{t("employer.sub")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-10 rounded-3xl border border-border/70 bg-[image:var(--gradient-card)] p-6 shadow-soft sm:p-8">
             <div className="space-y-6">
               <div>
-                <Label className="mb-3 block text-base">Worker type needed</Label>
+                <Label className="mb-3 block text-base">{t("employer.workerType")}</Label>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {CATEGORIES.map((c) => {
                     const active = category === c.value;
@@ -117,13 +125,11 @@ function PostJobPage() {
                         type="button"
                         onClick={() => setCategory(c.value)}
                         className={`rounded-xl border-2 p-4 text-left transition-all ${
-                          active
-                            ? "border-primary bg-primary/5 shadow-soft"
-                            : "border-border bg-card hover:border-primary/40"
+                          active ? "border-primary bg-primary/5 shadow-soft" : "border-border bg-card hover:border-primary/40"
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold">{c.label}</span>
+                          <span className="font-semibold">{t(`categories.${c.value}`)}</span>
                           {active && <CheckCircle2 className="h-5 w-5 text-primary" />}
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">{c.examples}</p>
@@ -135,31 +141,44 @@ function PostJobPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <Label htmlFor="title">Job title</Label>
+                  <Label htmlFor="title">{t("employer.jobTitle")}</Label>
                   <Input id="title" required value={form.title} onChange={set("title")} placeholder="Senior Electrician needed" className="mt-1.5 h-11" />
                 </div>
                 <div>
-                  <Label htmlFor="company">Company name</Label>
+                  <Label htmlFor="company">{t("employer.company")}</Label>
                   <Input id="company" required value={form.employer_name} onChange={set("employer_name")} placeholder="Sunrise Constructions" className="mt-1.5 h-11" />
                 </div>
                 <div>
-                  <Label htmlFor="loc">Job location</Label>
+                  <Label htmlFor="loc">{t("employer.jobLocation")}</Label>
                   <Input id="loc" required value={form.location} onChange={set("location")} placeholder="Bengaluru, Karnataka" className="mt-1.5 h-11" />
                 </div>
                 <div>
-                  <Label htmlFor="wage">Wage offered</Label>
+                  <Label htmlFor="wage">{t("employer.wage")}</Label>
                   <Input id="wage" required value={form.wage} onChange={set("wage")} placeholder="₹950 / day or ₹22,000 / month" className="mt-1.5 h-11" />
                 </div>
                 <div>
-                  <Label htmlFor="dur">Duration</Label>
+                  <Label htmlFor="jobtype">{t("employer.jobTypeLabel")}</Label>
+                  <select
+                    id="jobtype"
+                    value={jobType}
+                    onChange={(e) => setJobType(e.target.value as JobTypeValue)}
+                    className="mt-1.5 h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    {JOB_TYPES.map((jt) => (
+                      <option key={jt} value={jt}>{t(`jobType.${jt}`)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label htmlFor="dur">{t("employer.duration")}</Label>
                   <Input id="dur" required value={form.duration} onChange={set("duration")} placeholder="6 months / Permanent" className="mt-1.5 h-11" />
                 </div>
                 <div className="sm:col-span-2">
-                  <Label htmlFor="skills">Skills needed (comma separated)</Label>
+                  <Label htmlFor="skills">{t("employer.skills")}</Label>
                   <Input id="skills" value={form.skills} onChange={set("skills")} placeholder="Wiring, Panel installation, Safety certified" className="mt-1.5 h-11" />
                 </div>
                 <div className="sm:col-span-2">
-                  <Label htmlFor="desc">Job description</Label>
+                  <Label htmlFor="desc">{t("employer.description")}</Label>
                   <Textarea id="desc" required rows={4} value={form.description} onChange={set("description")} placeholder="Describe the work, skills required and any benefits like food, housing, etc." className="mt-1.5" />
                 </div>
               </div>
@@ -168,18 +187,25 @@ function PostJobPage() {
                 <div className="flex items-start gap-3">
                   <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                   <div>
-                    <p className="text-sm font-semibold">AI matching enabled</p>
-                    <p className="text-xs text-muted-foreground">
-                      Once posted, our AI ranks all registered workers by skills, location and experience — you'll see top candidates instantly.
-                    </p>
+                    <p className="text-sm font-semibold">{t("home.heroBadge")}</p>
+                    <p className="text-xs text-muted-foreground">{t("employer.sub")}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <Button type="submit" variant="hero" size="xl" className="mt-8 w-full" disabled={submitted}>
-              {submitted ? "Posting job…" : "Post job & find matches"}
-            </Button>
+            {user ? (
+              <Button type="submit" variant="hero" size="xl" className="mt-8 w-full" disabled={submitted}>
+                {submitted ? t("employer.posting") : t("employer.post")}
+              </Button>
+            ) : (
+              <div className="mt-8 rounded-xl border border-primary/20 bg-primary/5 p-4 text-center">
+                <p className="text-sm text-muted-foreground">{t("employer.signInPrompt")}</p>
+                <Button asChild variant="hero" size="xl" className="mt-4 w-full">
+                  <Link to="/auth" search={{ redirect: "/post-job" }}>{t("nav.signIn")}</Link>
+                </Button>
+              </div>
+            )}
           </form>
         </section>
       </main>
