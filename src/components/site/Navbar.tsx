@@ -13,7 +13,7 @@ export function Navbar() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/auth", search: { redirect: undefined }, replace: true });
   };
 
   return (
@@ -54,7 +54,7 @@ export function Navbar() {
           ) : (
             <>
               <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-                <Link to="/auth">{t("nav.signIn")}</Link>
+                <Link to="/auth" search={{ redirect: undefined }}>{t("nav.signIn")}</Link>
               </Button>
               <Button asChild size="sm" variant="hero">
                 <Link to="/post-job">{t("nav.postJob")}</Link>
