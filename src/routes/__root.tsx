@@ -2,6 +2,9 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { useEffect } from "react";
+import { getStoredLanguage } from "@/i18n";
+import i18n from "@/i18n";
 
 function NotFoundComponent() {
   return (
@@ -66,6 +69,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    const stored = getStoredLanguage();
+    if (stored !== i18n.language) void i18n.changeLanguage(stored);
+  }, []);
+
   return (
     <>
       <Outlet />
