@@ -3,12 +3,16 @@ import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { CATEGORIES, type WorkerCategory } from "@/lib/mock-data";
-import { MapPin, IndianRupee, Clock, Sparkles, Briefcase, Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { MapPin, IndianRupee, Clock, Sparkles, Briefcase, Check, Search, TrendingUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+
+type JobTypeValue = "full-time" | "part-time" | "daily-wage";
 
 type Job = {
   id: string;
@@ -20,6 +24,8 @@ type Job = {
   duration: string;
   skills: string[];
   created_at: string;
+  job_type: JobTypeValue;
+  monthly_pay: number;
 };
 
 export const Route = createFileRoute("/jobs")({
@@ -29,21 +35,20 @@ export const Route = createFileRoute("/jobs")({
       { title: "Find Jobs — KaamSetu" },
       { name: "description", content: "Browse AI-matched jobs for skilled, semi-skilled and unskilled workers across India." },
       { property: "og:title", content: "Find Jobs — KaamSetu" },
-      { property: "og:description", content: "Live openings for electricians, plumbers, machine operators, helpers and labourers." },
+      { property: "og:description", content: "Live openings for electricians, plumbers, drivers, cooks, guards, helpers and labourers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
 });
 
-function postedAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const hours = Math.floor(diff / 3_600_000);
-  if (hours < 1) return "just now";
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
+const PAGE_SIZE = 9;
+const SALARY_BANDS = [
+  { value: "any", labelKey: "jobs.salaryAny", min: 0, max: Infinity },
+  { value: "under15", labelKey: "jobs.salaryUnder15", min: 1, max: 14999 },
+  { value: "15to25", labelKey: "jobs.salary15to25", min: 15000, max: 25000 },
+  { value: "25plus", labelKey: "jobs.salary25plus", min: 25001, max: Infinity },
+] as const;
 
 function matchScore(id: string) {
   let hash = 0;
@@ -52,30 +57,37 @@ function matchScore(id: string) {
 }
 
 function JobsPage() {
-  const { user } = useAuth();
-  const [filter, setFilter] = useState<WorkerCategory | "all">("all");
+  const { t } = useTranslation();
+  const { user, profile } = useProfile();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [applied, setApplied] = useState<Set<string>>(new Set());
   const [applying, setApplying] = useState<string | null>(null);
 
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<WorkerCategory | "all">("all");
+  const [location, setLocation] = useState("");
+  const [salary, setSalary] = useState<string>("any");
+  const [jobType, setJobType] = useState<JobTypeValue | "any">("any");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   useEffect(() => {
     let cancelled = false;
     void supabase
       .from("jobs")
-      .select("id,title,category,employer_name,location,wage,duration,skills,created_at")
+      .select("id,title,category,employer_name,location,wage,duration,skills,created_at,job_type,monthly_pay")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
         if (cancelled) return;
-        if (error) toast.error("Could not load jobs");
+        if (error) toast.error(t("jobs.loadError"));
         setJobs((data as Job[] | null) ?? []);
         setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!user) {
@@ -102,14 +114,127 @@ function JobsPage() {
     const { error } = await supabase.from("applications").insert({ job_id: jobId, worker_id: user.id });
     setApplying(null);
     if (error) {
-      toast.error(error.message.includes("duplicate") ? "You already applied to this job." : error.message);
+      toast.error(error.message.includes("duplicate") ? t("jobs.alreadyApplied") : error.message);
       return;
     }
     setApplied((s) => new Set(s).add(jobId));
-    toast.success("Application sent! Track it in your dashboard.");
+    toast.success(t("jobs.applySuccess"));
   };
 
-  const visible = filter === "all" ? jobs : jobs.filter((j) => j.category === filter);
+  const filtered = useMemo(() => {
+    const band = SALARY_BANDS.find((b) => b.value === salary) ?? SALARY_BANDS[0];
+    const q = query.trim().toLowerCase();
+    const loc = location.trim().toLowerCase();
+    return jobs.filter((j) => {
+      if (category !== "all" && j.category !== category) return false;
+      if (jobType !== "any" && j.job_type !== jobType) return false;
+      if (band.value !== "any" && (j.monthly_pay < band.min || j.monthly_pay > band.max)) return false;
+      if (loc && !j.location.toLowerCase().includes(loc)) return false;
+      if (q && !(j.title.toLowerCase().includes(q) || j.location.toLowerCase().includes(q) || j.employer_name.toLowerCase().includes(q))) return false;
+      return true;
+    });
+  }, [jobs, category, jobType, salary, location, query]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [category, jobType, salary, location, query]);
+
+  const recommended = useMemo(() => {
+    if (!profile) return [];
+    const trade = (profile.trade ?? "").toLowerCase().trim();
+    const city = (profile.location ?? "").split(",")[0]?.toLowerCase().trim() ?? "";
+    const scored = jobs
+      .map((j) => {
+        let score = 0;
+        if (profile.category && j.category === profile.category) score += 2;
+        if (trade && (j.title.toLowerCase().includes(trade) || j.skills.some((s) => s.toLowerCase().includes(trade)))) score += 3;
+        if (city && j.location.toLowerCase().includes(city)) score += 2;
+        return { job: j, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score);
+    return scored.slice(0, 3).map((x) => x.job);
+  }, [jobs, profile]);
+
+  const trending = jobs.slice(0, 3);
+  const highlight = recommended.length > 0 ? recommended : trending;
+  const visible = filtered.slice(0, visibleCount);
+
+  const clearFilters = () => {
+    setQuery("");
+    setCategory("all");
+    setLocation("");
+    setSalary("any");
+    setJobType("any");
+  };
+
+  const renderCard = (job: Job) => {
+    const isApplied = applied.has(job.id);
+    return (
+      <article
+        key={job.id}
+        className="group relative overflow-hidden rounded-2xl border border-border/70 bg-[image:var(--gradient-card)] p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Briefcase className="h-5 w-5" />
+          </div>
+          <Badge className="bg-success/15 text-success hover:bg-success/15">
+            <Sparkles className="mr-1 h-3 w-3" />
+            {t("jobs.match", { score: matchScore(job.id) })}
+          </Badge>
+        </div>
+        <h3 className="mt-4 text-lg font-semibold">{job.title}</h3>
+        <p className="text-sm text-muted-foreground">{job.employer_name}</p>
+
+        <div className="mt-4 space-y-2 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-4 w-4 shrink-0" />
+            <span>{job.location}</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <IndianRupee className="h-4 w-4 shrink-0" />
+            <span className="font-medium text-foreground">{job.wage}</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Clock className="h-4 w-4 shrink-0" />
+            <span>{job.duration} • {t(`jobType.${job.job_type}`)}</span>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {job.skills.map((s) => (
+            <span key={s} className="rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground">
+              {s}
+            </span>
+          ))}
+        </div>
+
+        {user ? (
+          <Button
+            variant={isApplied ? "outline" : "hero"}
+            className="mt-5 w-full"
+            disabled={isApplied || applying === job.id}
+            onClick={() => apply(job.id)}
+          >
+            {isApplied ? (
+              <>
+                <Check className="h-4 w-4" /> {t("jobs.applied")}
+              </>
+            ) : applying === job.id ? (
+              t("jobs.applying")
+            ) : (
+              t("jobs.apply")
+            )}
+          </Button>
+        ) : (
+          <Button asChild variant="hero" className="mt-5 w-full">
+            <Link to="/auth" search={{ redirect: "/jobs" }}>{t("jobs.signInToApply")}</Link>
+          </Button>
+        )}
+      </article>
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -119,103 +244,106 @@ function JobsPage() {
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 text-sm font-medium text-primary">
               <Sparkles className="h-4 w-4" />
-              <span>AI-matched for you</span>
+              <span>{t("jobs.badge")}</span>
             </div>
-            <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Jobs near you</h1>
-            <p className="mt-3 max-w-2xl text-muted-foreground">
-              Our AI ranks jobs by your skills, location, and experience — top match shown first.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-2">
-              <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>All jobs</FilterChip>
+            <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">{t("jobs.heading")}</h1>
+            <p className="mt-3 max-w-2xl text-muted-foreground">{t("jobs.sub")}</p>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="relative sm:col-span-2">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("jobs.searchPlaceholder")}
+                  aria-label={t("jobs.searchPlaceholder")}
+                  className="h-11 pl-9"
+                />
+              </div>
+              <Input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder={t("jobs.locationPlaceholder")}
+                aria-label={t("jobs.location")}
+                className="h-11"
+              />
+              <select
+                value={salary}
+                onChange={(e) => setSalary(e.target.value)}
+                aria-label={t("jobs.salary")}
+                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                {SALARY_BANDS.map((b) => (
+                  <option key={b.value} value={b.value}>{t(b.labelKey)}</option>
+                ))}
+              </select>
+              <select
+                value={jobType}
+                onChange={(e) => setJobType(e.target.value as JobTypeValue | "any")}
+                aria-label={t("employer.jobTypeLabel")}
+                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm sm:col-span-2 lg:col-span-1"
+              >
+                <option value="any">{t("jobType.any")}</option>
+                <option value="full-time">{t("jobType.full-time")}</option>
+                <option value="part-time">{t("jobType.part-time")}</option>
+                <option value="daily-wage">{t("jobType.daily-wage")}</option>
+              </select>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <FilterChip active={category === "all"} onClick={() => setCategory("all")}>{t("categories.all")}</FilterChip>
               {CATEGORIES.map((c) => (
-                <FilterChip key={c.value} active={filter === c.value} onClick={() => setFilter(c.value)}>
-                  {c.label}
+                <FilterChip key={c.value} active={category === c.value} onClick={() => setCategory(c.value)}>
+                  {t(`categories.${c.value}`)}
                 </FilterChip>
               ))}
+              <button onClick={clearFilters} className="ml-auto text-sm font-medium text-primary hover:underline">
+                {t("jobs.clearFilters")}
+              </button>
             </div>
           </div>
         </section>
 
+        {!loading && highlight.length > 0 && (
+          <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2">
+              {recommended.length > 0 ? <Sparkles className="h-5 w-5 text-primary" /> : <TrendingUp className="h-5 w-5 text-primary" />}
+              <h2 className="text-2xl font-bold tracking-tight">
+                {recommended.length > 0 ? t("jobs.recommended") : t("jobs.trending")}
+              </h2>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {recommended.length > 0 ? t("jobs.recommendedSub") : t("jobs.trendingSub")}
+            </p>
+            <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{highlight.map(renderCard)}</div>
+          </section>
+        )}
+
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="text-2xl font-bold tracking-tight">{t("jobs.allJobs")}</h2>
+            {!loading && <p className="text-sm text-muted-foreground">{t("jobs.results", { count: filtered.length })}</p>}
+          </div>
+
           {loading ? (
-            <p className="text-muted-foreground">Loading jobs…</p>
+            <p className="mt-6 text-muted-foreground">{t("jobs.loading")}</p>
           ) : (
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {visible.map((job) => {
-                const isApplied = applied.has(job.id);
-                return (
-                  <article
-                    key={job.id}
-                    className="group relative overflow-hidden rounded-2xl border border-border/70 bg-[image:var(--gradient-card)] p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                        <Briefcase className="h-5 w-5" />
-                      </div>
-                      <Badge className="bg-success/15 text-success hover:bg-success/15">
-                        <Sparkles className="mr-1 h-3 w-3" />
-                        {matchScore(job.id)}% match
-                      </Badge>
-                    </div>
-                    <h3 className="mt-4 text-lg font-semibold">{job.title}</h3>
-                    <p className="text-sm text-muted-foreground">{job.employer_name}</p>
+            <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{visible.map(renderCard)}</div>
+          )}
 
-                    <div className="mt-4 space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="h-4 w-4 shrink-0" />
-                        <span>{job.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <IndianRupee className="h-4 w-4 shrink-0" />
-                        <span className="font-medium text-foreground">{job.wage}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-4 w-4 shrink-0" />
-                        <span>{job.duration} • {postedAgo(job.created_at)}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap gap-1.5">
-                      {job.skills.map((s) => (
-                        <span key={s} className="rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground">
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-
-                    {user ? (
-                      <Button
-                        variant={isApplied ? "outline" : "hero"}
-                        className="mt-5 w-full"
-                        disabled={isApplied || applying === job.id}
-                        onClick={() => apply(job.id)}
-                      >
-                        {isApplied ? (
-                          <>
-                            <Check className="h-4 w-4" /> Applied
-                          </>
-                        ) : applying === job.id ? (
-                          "Applying…"
-                        ) : (
-                          "Apply now"
-                        )}
-                      </Button>
-                    ) : (
-                      <Button asChild variant="hero" className="mt-5 w-full">
-                        <Link to="/auth" search={{ redirect: "/jobs" }}>Sign in to apply</Link>
-                      </Button>
-                    )}
-                  </article>
-                );
-              })}
+          {!loading && visibleCount < filtered.length && (
+            <div className="mt-8 text-center">
+              <Button variant="outline" size="xl" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
+                {t("jobs.loadMore")}
+              </Button>
             </div>
           )}
 
-          {!loading && visible.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border p-12 text-center">
-              <p className="text-muted-foreground">No jobs in this category right now.</p>
+          {!loading && filtered.length === 0 && (
+            <div className="mt-6 rounded-2xl border border-dashed border-border p-12 text-center">
+              <p className="text-muted-foreground">{t("jobs.empty")}</p>
               <Button asChild variant="outline" className="mt-4">
-                <Link to="/auth">Register to get notified</Link>
+                <Link to="/signup">{t("jobs.emptyCta")}</Link>
               </Button>
             </div>
           )}
@@ -231,9 +359,7 @@ function FilterChip({ children, active, onClick }: { children: React.ReactNode; 
     <button
       onClick={onClick}
       className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-        active
-          ? "bg-primary text-primary-foreground shadow-soft"
-          : "bg-card text-foreground border border-border hover:border-primary/40"
+        active ? "bg-primary text-primary-foreground shadow-soft" : "bg-card text-foreground border border-border hover:border-primary/40"
       }`}
     >
       {children}
