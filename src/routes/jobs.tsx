@@ -215,7 +215,7 @@ function JobsPage() {
             <div className="rounded-2xl border border-dashed border-border p-12 text-center">
               <p className="text-muted-foreground">No jobs in this category right now.</p>
               <Button asChild variant="outline" className="mt-4">
-                <Link to="/auth" search={{}}>Register to get notified</Link>
+                <Link to="/auth">Register to get notified</Link>
               </Button>
             </div>
           )}

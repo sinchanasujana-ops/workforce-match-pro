@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { FileText, Trash2, Upload, ShieldCheck, ExternalLink } from "lucide-react";
+import { FileText, Trash2, Upload, ShieldCheck, ExternalLink, BadgeCheck, Clock, XCircle } from "lucide-react";
 
 export const BUCKET = "worker-documents";
 
@@ -33,7 +33,30 @@ export type WorkerDocument = {
   file_size: number | null;
   mime_type: string | null;
   created_at: string;
+  verification_status: VerificationStatus;
+  verified_at: string | null;
+  verification_note: string | null;
 };
+
+export type VerificationStatus = "pending" | "verified" | "rejected";
+
+export function VerificationBadge({ status, note }: { status: VerificationStatus; note?: string | null }) {
+  const map = {
+    verified: { label: "Verified", Icon: BadgeCheck, cls: "border-primary/40 bg-primary/10 text-primary" },
+    pending: { label: "Pending review", Icon: Clock, cls: "border-accent/40 bg-accent/10 text-accent-foreground" },
+    rejected: { label: "Not accepted", Icon: XCircle, cls: "border-destructive/40 bg-destructive/10 text-destructive" },
+  }[status ?? "pending"];
+  const { label, Icon, cls } = map;
+  return (
+    <span
+      title={note ?? undefined}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${cls}`}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {label}
+    </span>
+  );
+}
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ACCEPT = "image/png,image/jpeg,image/webp,application/pdf";
@@ -204,10 +227,13 @@ export function WorkerDocuments({ userId }: { userId: string | undefined }) {
                     <FileText className="h-4 w-4 shrink-0 text-primary" />
                     {d.label || d.file_name}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {formatSize(d.file_size)} {d.file_size ? "· " : ""}
-                    {new Date(d.created_at).toLocaleDateString()}
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <VerificationBadge status={d.verification_status} note={d.verification_note} />
+                    <span className="text-xs text-muted-foreground">
+                      {formatSize(d.file_size)} {d.file_size ? "· " : ""}
+                      {new Date(d.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{KIND_LABEL[d.kind]}</Badge>

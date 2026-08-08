@@ -153,6 +153,9 @@ export type Database = {
           label: string
           mime_type: string | null
           updated_at: string
+          verification_note: string | null
+          verification_status: Database["public"]["Enums"]["verification_status"]
+          verified_at: string | null
           worker_id: string
         }
         Insert: {
@@ -165,6 +168,9 @@ export type Database = {
           label?: string
           mime_type?: string | null
           updated_at?: string
+          verification_note?: string | null
+          verification_status?: Database["public"]["Enums"]["verification_status"]
+          verified_at?: string | null
           worker_id: string
         }
         Update: {
@@ -177,6 +183,9 @@ export type Database = {
           label?: string
           mime_type?: string | null
           updated_at?: string
+          verification_note?: string | null
+          verification_status?: Database["public"]["Enums"]["verification_status"]
+          verified_at?: string | null
           worker_id?: string
         }
         Relationships: []
@@ -192,6 +201,7 @@ export type Database = {
       app_role: "worker" | "employer"
       application_status: "pending" | "shortlisted" | "hired" | "rejected"
       document_kind: "id_proof" | "certificate" | "other"
+      verification_status: "pending" | "verified" | "rejected"
       worker_category: "skilled" | "semi-skilled" | "unskilled"
     }
     CompositeTypes: {
@@ -323,6 +333,7 @@ export const Constants = {
       app_role: ["worker", "employer"],
       application_status: ["pending", "shortlisted", "hired", "rejected"],
       document_kind: ["id_proof", "certificate", "other"],
+      verification_status: ["pending", "verified", "rejected"],
       worker_category: ["skilled", "semi-skilled", "unskilled"],
     },
   },

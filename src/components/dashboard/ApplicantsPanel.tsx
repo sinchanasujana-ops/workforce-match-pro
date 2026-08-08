@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { MapPin, Phone, Star, UserRound, Check, X, Sparkles, FileText, ShieldCheck } from "lucide-react";
-import { KIND_LABEL, formatSize, openDocument, type WorkerDocument } from "@/components/worker/WorkerDocuments";
+import { KIND_LABEL, VerificationBadge, formatSize, openDocument, type WorkerDocument } from "@/components/worker/WorkerDocuments";
 
 type ApplicationStatus = "pending" | "shortlisted" | "hired" | "rejected";
 
@@ -173,6 +173,7 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
                       <FileText className="h-4 w-4 shrink-0 text-primary" />
                       <span className="truncate">{d.label || d.file_name}</span>
                       <Badge variant="secondary">{KIND_LABEL[d.kind]}</Badge>
+                      <VerificationBadge status={d.verification_status} note={d.verification_note} />
                       <span className="text-xs text-muted-foreground">{formatSize(d.file_size)}</span>
                     </span>
                     <Button size="sm" variant="outline" onClick={() => void openDocument(d.file_path)}>
