@@ -16,7 +16,10 @@ export function ChatAssistant() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [mounted, setMounted] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
@@ -42,7 +45,7 @@ export function ChatAssistant() {
 
   return (
     <>
-      {!open && (
+      {mounted && !open && (
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -53,7 +56,7 @@ export function ChatAssistant() {
         </button>
       )}
 
-      {open && (
+      {mounted && open && (
         <div className="fixed bottom-5 right-5 z-50 flex h-[30rem] w-[min(23rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[var(--shadow-elegant)]">
           <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-[image:var(--gradient-card)] px-4 py-3">
             <div className="flex items-center gap-2">
