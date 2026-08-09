@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { MicButton } from "@/components/site/MicButton";
+import { LocationField } from "@/components/site/LocationField";
 
 type JobTypeValue = "full-time" | "part-time" | "daily-wage";
 
@@ -66,6 +68,7 @@ function JobsPage() {
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<WorkerCategory | "all">("all");
+  const [categoryTouched, setCategoryTouched] = useState(false);
   const [location, setLocation] = useState("");
   const [salary, setSalary] = useState<string>("any");
   const [jobType, setJobType] = useState<JobTypeValue | "any">("any");
@@ -108,6 +111,17 @@ function JobsPage() {
     };
   }, [user]);
 
+  // Default the skill-level filter to the worker's own category so each
+  // category sees a different list (until they pick another one manually).
+  useEffect(() => {
+    if (!categoryTouched && profile?.category) setCategory(profile.category);
+  }, [profile, categoryTouched]);
+
+  const pickCategory = (value: WorkerCategory | "all") => {
+    setCategoryTouched(true);
+    setCategory(value);
+  };
+
   const apply = async (jobId: string) => {
     if (!user) return;
     setApplying(jobId);
@@ -121,11 +135,25 @@ function JobsPage() {
     toast.success(t("jobs.applySuccess"));
   };
 
+  const knownLocations = useMemo(() => Array.from(new Set(jobs.map((j) => j.location))).sort(), [jobs]);
+
+  const scoreFor = useMemo(() => {
+    const trade = (profile?.trade ?? "").toLowerCase().trim();
+    const city = (profile?.location ?? "").split(",")[0]?.toLowerCase().trim() ?? "";
+    return (j: Job) => {
+      let score = 0;
+      if (profile?.category && j.category === profile.category) score += 5;
+      if (trade && (j.title.toLowerCase().includes(trade) || j.skills.some((s) => s.toLowerCase().includes(trade)))) score += 3;
+      if (city && j.location.toLowerCase().includes(city)) score += 2;
+      return score;
+    };
+  }, [profile]);
+
   const filtered = useMemo(() => {
     const band = SALARY_BANDS.find((b) => b.value === salary) ?? SALARY_BANDS[0];
     const q = query.trim().toLowerCase();
     const loc = location.trim().toLowerCase();
-    return jobs.filter((j) => {
+    const list = jobs.filter((j) => {
       if (category !== "all" && j.category !== category) return false;
       if (jobType !== "any" && j.job_type !== jobType) return false;
       if (band.value !== "any" && (j.monthly_pay < band.min || j.monthly_pay > band.max)) return false;
@@ -133,7 +161,9 @@ function JobsPage() {
       if (q && !(j.title.toLowerCase().includes(q) || j.location.toLowerCase().includes(q) || j.employer_name.toLowerCase().includes(q))) return false;
       return true;
     });
-  }, [jobs, category, jobType, salary, location, query]);
+    if (!profile) return list;
+    return [...list].sort((a, b) => scoreFor(b) - scoreFor(a));
+  }, [jobs, category, jobType, salary, location, query, profile, scoreFor]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -141,27 +171,27 @@ function JobsPage() {
 
   const recommended = useMemo(() => {
     if (!profile) return [];
-    const trade = (profile.trade ?? "").toLowerCase().trim();
-    const city = (profile.location ?? "").split(",")[0]?.toLowerCase().trim() ?? "";
-    const scored = jobs
-      .map((j) => {
-        let score = 0;
-        if (profile.category && j.category === profile.category) score += 2;
-        if (trade && (j.title.toLowerCase().includes(trade) || j.skills.some((s) => s.toLowerCase().includes(trade)))) score += 3;
-        if (city && j.location.toLowerCase().includes(city)) score += 2;
-        return { job: j, score };
-      })
-      .filter((x) => x.score > 0)
-      .sort((a, b) => b.score - a.score);
-    return scored.slice(0, 3).map((x) => x.job);
-  }, [jobs, profile]);
+    // Skill level decides the pool first, so skilled / semi-skilled / unskilled
+    // workers never see the same recommendations.
+    const level = profile.category ?? (category !== "all" ? category : null);
+    const pool = level ? jobs.filter((j) => j.category === level) : jobs;
+    return [...pool]
+      .map((j) => ({ job: j, score: scoreFor(j) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((x) => x.job);
+  }, [jobs, profile, category, scoreFor]);
 
-  const trending = jobs.slice(0, 3);
+  const trending = useMemo(() => {
+    const pool = category !== "all" ? jobs.filter((j) => j.category === category) : jobs;
+    return pool.slice(0, 3);
+  }, [jobs, category]);
   const highlight = recommended.length > 0 ? recommended : trending;
   const visible = filtered.slice(0, visibleCount);
 
   const clearFilters = () => {
     setQuery("");
+    setCategoryTouched(true);
     setCategory("all");
     setLocation("");
     setSalary("any");
