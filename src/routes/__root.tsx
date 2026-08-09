@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { ChatAssistant } from "@/components/assistant/ChatAssistant";
 import { useEffect } from "react";
 import { getStoredLanguage } from "@/i18n";
 import i18n from "@/i18n";
@@ -77,6 +78,7 @@ function RootComponent() {
   return (
     <>
       <Outlet />
+      <ChatAssistant />
       <Toaster position="top-center" richColors />
     </>
   );

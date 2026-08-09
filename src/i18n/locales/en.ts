@@ -120,4 +120,33 @@ export const en = {
     browseTalent: "Browse talent",
     rights: "KaamSetu. Built with care for every worker.",
   },
+  voice: {
+    start: "Search by voice",
+    listening: "Listening…",
+    unsupported: "Voice search is not supported on this browser.",
+    denied: "Microphone permission denied.",
+    error: "Could not hear you. Try again.",
+  },
+  location: {
+    detect: "Detect my location",
+    detecting: "Finding your location…",
+    denied: "Location permission denied — please type your city.",
+    unavailable: "Could not detect location — please type your city.",
+  },
+  skillLevel: {
+    label: "Skill level",
+    yours: "Your skill level",
+  },
+  assistant: {
+    title: "Setu Assistant",
+    subtitle: "Ask anything about KaamSetu",
+    open: "Open help assistant",
+    close: "Close assistant",
+    placeholder: "Type or speak your question…",
+    send: "Send",
+    thinking: "Typing…",
+    greeting: "Namaste! I can help you find jobs, post a job or fix your profile. Ask me in English, Hindi or Kannada.",
+    suggestions: ["How do I apply for a job?", "How do I post a job?", "What does skilled mean?"],
+    error: "Sorry, I could not answer right now. Please try again.",
+  },
 };
