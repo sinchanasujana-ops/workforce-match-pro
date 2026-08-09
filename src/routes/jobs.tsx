@@ -287,16 +287,11 @@ function JobsPage() {
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t("jobs.searchPlaceholder")}
                   aria-label={t("jobs.searchPlaceholder")}
-                  className="h-11 pl-9"
+                  className="h-11 pl-9 pr-28"
                 />
+                <MicButton onTranscript={(text) => setQuery(text)} className="absolute right-2 top-1/2 -translate-y-1/2 flex-row-reverse" />
               </div>
-              <Input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder={t("jobs.locationPlaceholder")}
-                aria-label={t("jobs.location")}
-                className="h-11"
-              />
+              <LocationField value={location} onChange={setLocation} knownLocations={knownLocations} />
               <select
                 value={salary}
                 onChange={(e) => setSalary(e.target.value)}
@@ -321,10 +316,12 @@ function JobsPage() {
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <FilterChip active={category === "all"} onClick={() => setCategory("all")}>{t("categories.all")}</FilterChip>
+              <span className="mr-1 text-sm font-medium text-muted-foreground">{t("skillLevel.label")}:</span>
+              <FilterChip active={category === "all"} onClick={() => pickCategory("all")}>{t("categories.all")}</FilterChip>
               {CATEGORIES.map((c) => (
-                <FilterChip key={c.value} active={category === c.value} onClick={() => setCategory(c.value)}>
+                <FilterChip key={c.value} active={category === c.value} onClick={() => pickCategory(c.value)}>
                   {t(`categories.${c.value}`)}
+                  {profile?.category === c.value ? <span className="ml-1 text-xs opacity-80">★</span> : null}
                 </FilterChip>
               ))}
               <button onClick={clearFilters} className="ml-auto text-sm font-medium text-primary hover:underline">
