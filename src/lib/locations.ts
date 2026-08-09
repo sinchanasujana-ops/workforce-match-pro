@@ -30,6 +30,24 @@ export function suggestLocations(query: string, extra: string[] = [], limit = 7)
 }
 
 export async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+  // OpenStreetMap Nominatim — no API key, browser-friendly CORS.
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&addressdetails=1&lat=${lat}&lon=${lon}`,
+      { headers: { Accept: "application/json" } },
+    );
+    if (res.ok) {
+      const data = (await res.json()) as { address?: Record<string, string>; display_name?: string };
+      const a = data.address ?? {};
+      const city = a["city"] || a["town"] || a["village"] || a["municipality"] || a["county"] || a["state_district"];
+      const state = a["state"];
+      if (city) return state && state !== city ? `${city}, ${state}` : city;
+      if (state) return state;
+      if (data.display_name) return data.display_name.split(",").slice(0, 2).join(",").trim();
+    }
+  } catch {
+    // fall through to the backup service below
+  }
   try {
     const res = await fetch(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`,
