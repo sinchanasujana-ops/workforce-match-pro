@@ -37,7 +37,7 @@ export const askAssistant = createServerFn({ method: "POST" })
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
       body: JSON.stringify({
-        model: "google/gemini-3-flash",
+        model: "google/gemini-3.6-flash",
         messages: [
           { role: "system", content: `${SYSTEM}\n\nApp language: ${LANG_NAME[data.lang]}.` },
           ...data.messages,
