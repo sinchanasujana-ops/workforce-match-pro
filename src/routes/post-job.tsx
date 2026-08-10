@@ -17,9 +17,9 @@ export const Route = createFileRoute("/post-job")({
   component: PostJobPage,
   head: () => ({
     meta: [
-      { title: "Post a Job — KaamSetu" },
+      { title: "Post a Job — Rozgaar" },
       { name: "description", content: "Hire skilled, semi-skilled or unskilled workers. AI matches your job to the best candidates instantly." },
-      { property: "og:title", content: "Post a Job — KaamSetu" },
+      { property: "og:title", content: "Post a Job — Rozgaar" },
       { property: "og:description", content: "Reach thousands of verified blue-collar workers across India in minutes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

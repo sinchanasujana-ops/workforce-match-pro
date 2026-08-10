@@ -17,10 +17,10 @@ export const Route = createFileRoute("/signup")({
   component: SignupPage,
   head: () => ({
     meta: [
-      { title: "Worker Profile — KaamSetu" },
+      { title: "Worker Profile — Rozgaar" },
       { name: "description", content: "Complete your worker profile — get AI-matched to jobs that suit your skills, location and experience." },
-      { property: "og:title", content: "Worker Profile — KaamSetu" },
-      { property: "og:description", content: "Save your trade, experience and location so KaamSetu can match you to nearby jobs." },
+      { property: "og:title", content: "Worker Profile — Rozgaar" },
+      { property: "og:description", content: "Save your trade, experience and location so Rozgaar can match you to nearby jobs." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
