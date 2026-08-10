@@ -4,6 +4,7 @@ import { Footer } from "@/components/site/Footer";
 import { Button } from "@/components/ui/button";
 import { CATEGORIES } from "@/lib/mock-data";
 import heroImage from "@/assets/hero-workers.jpg";
+import { Reveal } from "@/components/site/Reveal";
 import {
   Sparkles,
   MapPin,
@@ -35,11 +36,11 @@ function Index() {
       <Navbar />
       <main className="flex-1">
         <Hero />
-        <Stats />
-        <Categories />
-        <HowItWorks />
-        <ForEmployers />
-        <FinalCTA />
+        <Reveal><Stats /></Reveal>
+        <Reveal><Categories /></Reveal>
+        <Reveal><HowItWorks /></Reveal>
+        <Reveal><ForEmployers /></Reveal>
+        <Reveal><FinalCTA /></Reveal>
       </main>
       <Footer />
     </div>
@@ -50,27 +51,27 @@ function Hero() {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-secondary/60 via-background to-background" />
-      <div className="absolute right-0 top-0 -z-10 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
-      <div className="absolute -left-20 bottom-0 -z-10 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
+      <div className="animate-blob absolute right-0 top-0 -z-10 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
+      <div className="animate-blob absolute -left-20 bottom-0 -z-10 h-96 w-96 rounded-full bg-primary/20 blur-3xl [animation-delay:-7s]" />
 
       <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-8 lg:px-8 lg:py-24">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
+          <div className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
             <Sparkles className="h-4 w-4" />
             AI-powered job matching
           </div>
-          <h1 className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="animate-fade-up mt-5 text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl [animation-delay:80ms]">
             Right job, right worker —{" "}
             <span className="bg-gradient-to-br from-primary via-primary-glow to-accent bg-clip-text text-transparent">
               matched by AI.
             </span>
           </h1>
-          <p className="mt-5 max-w-xl text-lg text-muted-foreground">
+          <p className="animate-fade-up mt-5 max-w-xl text-lg text-muted-foreground [animation-delay:160ms]">
             India's first AI-driven employment exchange built for blue-collar workers. Skilled,
             semi-skilled or unskilled — find work that pays fairly, near you.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="animate-fade-up mt-8 flex flex-wrap gap-3 [animation-delay:240ms]">
             <Button asChild variant="hero" size="xl">
               <Link to="/signup">
                 I'm looking for work <ArrowRight className="ml-1 h-5 w-5" />
@@ -81,7 +82,7 @@ function Hero() {
             </Button>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
+          <div className="animate-fade-up mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground [animation-delay:320ms]">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-success" />
               Free for workers
@@ -97,7 +98,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="animate-fade-in-soft relative [animation-delay:200ms]">
           <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-br from-primary/20 via-accent/20 to-transparent blur-2xl" />
           <img
             src={heroImage}
@@ -106,7 +107,7 @@ function Hero() {
             height={1024}
             className="rounded-3xl shadow-[var(--shadow-elegant)] ring-1 ring-border/50"
           />
-          <div className="absolute -bottom-6 -left-6 hidden rounded-2xl border border-border/70 bg-card/95 p-4 shadow-[var(--shadow-elegant)] backdrop-blur sm:block">
+          <div className="animate-float-slow absolute -bottom-6 -left-6 hidden rounded-2xl border border-border/70 bg-card/95 p-4 shadow-[var(--shadow-elegant)] backdrop-blur sm:block">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/15 text-success">
                 <Sparkles className="h-5 w-5" />
@@ -134,7 +135,7 @@ function Stats() {
     <section className="border-y border-border/60 bg-secondary/30">
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
         {stats.map((s) => (
-          <div key={s.label} className="text-center">
+          <div key={s.label} className="text-center transition-transform hover:-translate-y-0.5">
             <div className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">{s.value}</div>
             <div className="mt-1 text-sm text-muted-foreground">{s.label}</div>
           </div>
@@ -158,7 +159,7 @@ function Categories() {
         {CATEGORIES.map((c, i) => (
           <div
             key={c.value}
-            className="group relative overflow-hidden rounded-3xl border border-border/70 bg-[image:var(--gradient-card)] p-7 shadow-soft transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]"
+            className="group relative overflow-hidden rounded-3xl border border-border/70 bg-[image:var(--gradient-card)] p-7 shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)]"
           >
             <div
               className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
@@ -210,7 +211,7 @@ function HowItWorks() {
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {steps.map((s, i) => (
-            <div key={s.title} className="relative rounded-3xl border border-border/70 bg-card p-7 shadow-soft">
+            <div key={s.title} className="hover-lift relative rounded-3xl border border-border/70 bg-card p-7 shadow-soft">
               <div className="absolute -top-4 left-7 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-glow text-sm font-bold text-primary-foreground shadow-soft">
                 {i + 1}
               </div>
@@ -256,7 +257,7 @@ function ForEmployers() {
           </div>
           <ul className="space-y-3">
             {benefits.map((b) => (
-              <li key={b} className="flex items-start gap-3 rounded-2xl bg-white/10 p-4 backdrop-blur">
+              <li key={b} className="flex items-start gap-3 rounded-2xl bg-white/10 p-4 backdrop-blur transition-transform duration-300 hover:translate-x-1">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent-glow" />
                 <span className="font-medium">{b}</span>
               </li>
