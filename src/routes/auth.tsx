@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { HardHat, Building2, Sparkles } from "lucide-react";
+import { HardHat, Building2, Sparkles, MailCheck } from "lucide-react";
 import { z } from "zod";
 
 export const Route = createFileRoute("/auth")({
@@ -39,6 +39,17 @@ function safePath(value: string | undefined, fallback: string) {
   return value;
 }
 
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.4 17.7 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4.1H24v8.4h12.5c-.3 2.1-1.6 5.2-4.6 7.3l7.7 6c4.5-4.2 6.5-10.2 6.5-17.6z" />
+      <path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.7 24c0-1.6.3-3.2.8-4.6l-7.9-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.6-5.8l-7.7-6c-2.1 1.4-4.8 2.4-7.9 2.4-6.3 0-11.6-3.9-13.5-9.4l-7.9 6.2C6.5 42.6 14.6 48 24 48z" />
+    </svg>
+  );
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
@@ -48,6 +59,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
 
   const dest = safePath(search.redirect, "/dashboard");
 
@@ -56,6 +69,21 @@ function AuthPage() {
       if (data.session) navigate({ to: dest, replace: true });
     });
   }, [dest, navigate]);
+
+  const describeAuthError = (err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    const lower = message.toLowerCase();
+    if (lower.includes("already registered") || lower.includes("already been registered")) {
+      return "This email is already registered. Please sign in instead.";
+    }
+    if (lower.includes("rate limit") || lower.includes("too many")) {
+      return "We couldn't send the verification email right now (sending limit reached). Please try again in a few minutes.";
+    }
+    if (lower.includes("error sending") || lower.includes("smtp") || lower.includes("email")) {
+      return "Account created, but the verification email could not be sent. Please try 'Resend email' or contact support.";
+    }
+    return message;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,8 +104,15 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        // Supabase returns a user with no identities when the email already exists.
+        if (data.user && (data.user.identities?.length ?? 0) === 0) {
+          toast.error("This email is already registered. Please sign in instead.");
+          setMode("signin");
+          return;
+        }
         if (!data.session) {
-          toast.success("Check your email to confirm your account.");
+          setPendingEmail(parsed.data.email);
+          toast.success(`Verification email sent to ${parsed.data.email}. Check inbox and spam.`);
           return;
         }
         toast.success("Welcome to Rozgaar!");
@@ -92,9 +127,29 @@ function AuthPage() {
         navigate({ to: dest, replace: true });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      const friendly = describeAuthError(err);
+      toast.error(friendly);
+      if (friendly.startsWith("This email is already registered")) setMode("signin");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!pendingEmail) return;
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: pendingEmail,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) throw error;
+      toast.success("Verification email sent again.");
+    } catch (err) {
+      toast.error(describeAuthError(err));
+    } finally {
+      setResending(false);
     }
   };
 
@@ -121,7 +176,7 @@ function AuthPage() {
       <Navbar />
       <main className="flex-1">
         <section className="mx-auto max-w-md px-4 py-12 sm:px-6">
-          <div className="text-center">
+          <div className="animate-fade-up text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
               <Sparkles className="h-4 w-4" />
               Free for workers, always
@@ -138,8 +193,33 @@ function AuthPage() {
 
           <form
             onSubmit={handleSubmit}
-            className="mt-8 rounded-3xl border border-border/70 bg-[image:var(--gradient-card)] p-6 shadow-soft"
+            className="animate-fade-up mt-8 rounded-3xl border border-border/70 bg-[image:var(--gradient-card)] p-6 shadow-soft transition-shadow duration-300 hover:shadow-[var(--shadow-elegant)] [animation-delay:90ms]"
           >
+            {pendingEmail && (
+              <div className="mb-5 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                <div className="flex items-start gap-3">
+                  <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">Confirm your email</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      We sent a verification link to {pendingEmail}. Check your inbox and spam folder — you must
+                      confirm before signing in.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={handleResend}
+                      disabled={resending}
+                    >
+                      {resending ? "Sending…" : "Resend email"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {mode === "signup" && (
               <div className="mb-5">
                 <Label className="mb-3 block">I am a…</Label>
@@ -182,7 +262,8 @@ function AuthPage() {
             </div>
 
             <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogle} disabled={busy}>
-              Continue with Google
+              <GoogleIcon />
+              {mode === "signup" ? "Sign up with Google" : "Continue with Google"}
             </Button>
 
             <p className="mt-5 text-center text-sm text-muted-foreground">
