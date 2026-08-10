@@ -36,7 +36,7 @@ export const hi = {
     recommended: "आपके लिए सुझाई गई नौकरियाँ",
     recommendedSub: "आपके काम, श्रेणी और शहर के अनुसार।",
     trending: "अभी लोकप्रिय",
-    trendingSub: "KaamSetu पर सबसे नई नौकरियाँ।",
+    trendingSub: "Rozgaar पर सबसे नई नौकरियाँ।",
     allJobs: "सभी नौकरियाँ",
     results: "{{count}} नौकरियाँ मिलीं",
     loadMore: "और नौकरियाँ देखें",
@@ -118,7 +118,7 @@ export const hi = {
     forEmployers: "नियोक्ताओं के लिए",
     browseJobs: "नौकरियाँ देखें",
     browseTalent: "मज़दूर देखें",
-    rights: "KaamSetu. हर मज़दूर के लिए, पूरे मन से बनाया गया।",
+    rights: "Rozgaar. हर मज़दूर के लिए, पूरे मन से बनाया गया।",
   },
   voice: {
     start: "बोलकर खोजें",
@@ -139,7 +139,7 @@ export const hi = {
   },
   assistant: {
     title: "सेतु सहायक",
-    subtitle: "KaamSetu के बारे में कुछ भी पूछें",
+    subtitle: "Rozgaar के बारे में कुछ भी पूछें",
     open: "सहायक खोलें",
     close: "सहायक बंद करें",
     placeholder: "सवाल लिखें या बोलें…",

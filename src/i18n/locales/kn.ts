@@ -36,7 +36,7 @@ export const kn = {
     recommended: "ನಿಮಗೆ ಶಿಫಾರಸು ಮಾಡಿದ ಕೆಲಸಗಳು",
     recommendedSub: "ನಿಮ್ಮ ವೃತ್ತಿ, ವರ್ಗ ಮತ್ತು ಊರಿಗೆ ಹೊಂದುವಂತೆ.",
     trending: "ಈಗ ಜನಪ್ರಿಯ",
-    trendingSub: "KaamSetu ನಲ್ಲಿ ಅತ್ಯಂತ ಹೊಸ ಕೆಲಸಗಳು.",
+    trendingSub: "Rozgaar ನಲ್ಲಿ ಅತ್ಯಂತ ಹೊಸ ಕೆಲಸಗಳು.",
     allJobs: "ಎಲ್ಲಾ ಕೆಲಸಗಳು",
     results: "{{count}} ಕೆಲಸಗಳು ಸಿಕ್ಕಿವೆ",
     loadMore: "ಇನ್ನಷ್ಟು ಕೆಲಸಗಳು",
@@ -118,7 +118,7 @@ export const kn = {
     forEmployers: "ಉದ್ಯೋಗದಾತರಿಗಾಗಿ",
     browseJobs: "ಕೆಲಸಗಳನ್ನು ನೋಡಿ",
     browseTalent: "ಕಾರ್ಮಿಕರನ್ನು ನೋಡಿ",
-    rights: "KaamSetu. ಪ್ರತಿ ಕಾರ್ಮಿಕರಿಗಾಗಿ ಪ್ರೀತಿಯಿಂದ ನಿರ್ಮಿಸಲಾಗಿದೆ.",
+    rights: "Rozgaar. ಪ್ರತಿ ಕಾರ್ಮಿಕರಿಗಾಗಿ ಪ್ರೀತಿಯಿಂದ ನಿರ್ಮಿಸಲಾಗಿದೆ.",
   },
   voice: {
     start: "ಮಾತಿನಿಂದ ಹುಡುಕಿ",
@@ -139,7 +139,7 @@ export const kn = {
   },
   assistant: {
     title: "ಸೇತು ಸಹಾಯಕ",
-    subtitle: "KaamSetu ಬಗ್ಗೆ ಏನನ್ನಾದರೂ ಕೇಳಿ",
+    subtitle: "Rozgaar ಬಗ್ಗೆ ಏನನ್ನಾದರೂ ಕೇಳಿ",
     open: "ಸಹಾಯಕವನ್ನು ತೆರೆಯಿರಿ",
     close: "ಸಹಾಯಕವನ್ನು ಮುಚ್ಚಿ",
     placeholder: "ಪ್ರಶ್ನೆ ಬರೆಯಿರಿ ಅಥವಾ ಮಾತನಾಡಿ…",

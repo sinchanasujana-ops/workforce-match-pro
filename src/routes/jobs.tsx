@@ -34,9 +34,9 @@ export const Route = createFileRoute("/jobs")({
   component: JobsPage,
   head: () => ({
     meta: [
-      { title: "Find Jobs — KaamSetu" },
+      { title: "Find Jobs — Rozgaar" },
       { name: "description", content: "Browse AI-matched jobs for skilled, semi-skilled and unskilled workers across India." },
-      { property: "og:title", content: "Find Jobs — KaamSetu" },
+      { property: "og:title", content: "Find Jobs — Rozgaar" },
       { property: "og:description", content: "Live openings for electricians, plumbers, drivers, cooks, guards, helpers and labourers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

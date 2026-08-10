@@ -23,7 +23,7 @@ export function Navbar() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground shadow-soft transition-transform group-hover:scale-105">
             <Briefcase className="h-5 w-5" strokeWidth={2.5} />
           </div>
-          <span className="text-lg font-bold tracking-tight">KaamSetu</span>
+          <span className="text-lg font-bold tracking-tight">Rozgaar</span>
         </Link>
         <nav className="hidden items-center gap-1 md:flex">
           <Link to="/jobs" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "bg-secondary text-foreground" }}>

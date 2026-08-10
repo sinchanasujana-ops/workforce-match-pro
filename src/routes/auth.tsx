@@ -18,10 +18,10 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
   head: () => ({
     meta: [
-      { title: "Sign in or Register — KaamSetu" },
-      { name: "description", content: "Sign in to KaamSetu to save your worker or employer profile and track job applications." },
-      { property: "og:title", content: "Sign in or Register — KaamSetu" },
-      { property: "og:description", content: "Create a free KaamSetu account to get AI-matched to blue-collar jobs across India." },
+      { title: "Sign in or Register — Rozgaar" },
+      { name: "description", content: "Sign in to Rozgaar to save your worker or employer profile and track job applications." },
+      { property: "og:title", content: "Sign in or Register — Rozgaar" },
+      { property: "og:description", content: "Create a free Rozgaar account to get AI-matched to blue-collar jobs across India." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -80,7 +80,7 @@ function AuthPage() {
           toast.success("Check your email to confirm your account.");
           return;
         }
-        toast.success("Welcome to KaamSetu!");
+        toast.success("Welcome to Rozgaar!");
         navigate({ to: role === "employer" ? "/post-job" : "/signup", replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -101,7 +101,7 @@ function AuthPage() {
   const handleGoogle = async () => {
     setBusy(true);
     try {
-      sessionStorage.setItem("kaamsetu:redirect", dest);
+      sessionStorage.setItem("rozgaar:redirect", dest);
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
@@ -186,7 +186,7 @@ function AuthPage() {
             </Button>
 
             <p className="mt-5 text-center text-sm text-muted-foreground">
-              {mode === "signin" ? "New to KaamSetu?" : "Already have an account?"}{" "}
+              {mode === "signin" ? "New to Rozgaar?" : "Already have an account?"}{" "}
               <button
                 type="button"
                 className="font-medium text-primary hover:underline"

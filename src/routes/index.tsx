@@ -21,9 +21,9 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "KaamSetu — AI Job Exchange for Blue-Collar Workers" },
+      { title: "Rozgaar — AI Job Exchange for Blue-Collar Workers" },
       { name: "description", content: "AI-powered employment exchange matching skilled, semi-skilled and unskilled workers with the right jobs across India." },
-      { property: "og:title", content: "KaamSetu — AI Job Exchange for Blue-Collar Workers" },
+      { property: "og:title", content: "Rozgaar — AI Job Exchange for Blue-Collar Workers" },
       { property: "og:description", content: "AI matches workers to jobs and employers to workers — built for India's blue-collar workforce." },
     ],
   }),

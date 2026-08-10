@@ -13,7 +13,7 @@ export function Footer() {
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
                 <Briefcase className="h-5 w-5" strokeWidth={2.5} />
               </div>
-              <span className="text-lg font-bold">KaamSetu</span>
+              <span className="text-lg font-bold">Rozgaar</span>
             </div>
             <p className="mt-3 max-w-md text-sm text-muted-foreground">
               {t("footer.tagline")}

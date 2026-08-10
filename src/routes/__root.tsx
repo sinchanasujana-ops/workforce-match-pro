@@ -34,10 +34,10 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "KaamSetu — AI Job Exchange for Blue-Collar Workers" },
+      { title: "Rozgaar — AI Job Exchange for Blue-Collar Workers" },
       { name: "description", content: "AI-powered employment exchange matching workers and employers across India." },
-      { name: "author", content: "KaamSetu" },
-      { property: "og:title", content: "KaamSetu" },
+      { name: "author", content: "Rozgaar" },
+      { property: "og:title", content: "Rozgaar" },
       { property: "og:description", content: "AI-powered employment exchange for India's blue-collar workforce." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

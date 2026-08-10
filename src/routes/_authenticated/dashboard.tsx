@@ -14,10 +14,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
   head: () => ({
     meta: [
-      { title: "My Dashboard — KaamSetu" },
-      { name: "description", content: "Track your KaamSetu profile, job applications and posted jobs in one place." },
-      { property: "og:title", content: "My Dashboard — KaamSetu" },
-      { property: "og:description", content: "Your saved profile, applications and job postings on KaamSetu." },
+      { title: "My Dashboard — Rozgaar" },
+      { name: "description", content: "Track your Rozgaar profile, job applications and posted jobs in one place." },
+      { property: "og:title", content: "My Dashboard — Rozgaar" },
+      { property: "og:description", content: "Your saved profile, applications and job postings on Rozgaar." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

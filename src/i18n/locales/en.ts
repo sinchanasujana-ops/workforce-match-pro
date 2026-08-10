@@ -36,7 +36,7 @@ export const en = {
     recommended: "Recommended for you",
     recommendedSub: "Matched to your trade, category and city.",
     trending: "Trending right now",
-    trendingSub: "The most recent openings posted on KaamSetu.",
+    trendingSub: "The most recent openings posted on Rozgaar.",
     allJobs: "All jobs",
     results: "{{count}} jobs found",
     loadMore: "Load more jobs",
@@ -118,7 +118,7 @@ export const en = {
     forEmployers: "For employers",
     browseJobs: "Browse jobs",
     browseTalent: "Browse talent",
-    rights: "KaamSetu. Built with care for every worker.",
+    rights: "Rozgaar. Built with care for every worker.",
   },
   voice: {
     start: "Search by voice",
@@ -139,7 +139,7 @@ export const en = {
   },
   assistant: {
     title: "Setu Assistant",
-    subtitle: "Ask anything about KaamSetu",
+    subtitle: "Ask anything about Rozgaar",
     open: "Open help assistant",
     close: "Close assistant",
     placeholder: "Type or speak your question…",

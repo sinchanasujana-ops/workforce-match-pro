@@ -10,7 +10,7 @@ export const LANGUAGES = [
   { code: "kn", label: "ಕನ್ನಡ", short: "KN" },
 ] as const;
 
-export const LANG_STORAGE_KEY = "kaamsetu:lang";
+export const LANG_STORAGE_KEY = "rozgaar:lang";
 
 if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
