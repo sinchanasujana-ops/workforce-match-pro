@@ -3,6 +3,7 @@ export const en = {
     findJobs: "Find Jobs",
     hireWorkers: "Hire Workers",
     register: "Register",
+    myProfile: "My profile",
     signIn: "Sign in",
     signOut: "Sign out",
     dashboard: "Dashboard",

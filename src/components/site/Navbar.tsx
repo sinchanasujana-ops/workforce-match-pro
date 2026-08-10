@@ -33,7 +33,7 @@ export function Navbar() {
             {t("nav.hireWorkers")}
           </Link>
           <Link to="/signup" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "bg-secondary text-foreground" }}>
-            {t("nav.register")}
+            {user ? t("nav.myProfile") : t("nav.register")}
           </Link>
         </nav>
         <div className="flex items-center gap-2">
