@@ -198,12 +198,13 @@ function JobsPage() {
     setJobType("any");
   };
 
-  const renderCard = (job: Job) => {
+  const renderCard = (job: Job, index = 0) => {
     const isApplied = applied.has(job.id);
     return (
       <article
         key={job.id}
-        className="group relative overflow-hidden rounded-2xl border border-border/70 bg-[image:var(--gradient-card)] p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]"
+        style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
+        className="animate-fade-up group relative overflow-hidden rounded-2xl border border-border/70 bg-[image:var(--gradient-card)] p-6 shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-elegant)]"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
