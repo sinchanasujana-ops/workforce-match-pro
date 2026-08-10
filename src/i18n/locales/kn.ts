@@ -3,6 +3,7 @@ export const kn = {
     findJobs: "ಕೆಲಸ ಹುಡುಕಿ",
     hireWorkers: "ಕಾರ್ಮಿಕರನ್ನು ನೇಮಿಸಿ",
     register: "ನೋಂದಣಿ",
+    myProfile: "ನನ್ನ ಪ್ರೊಫೈಲ್",
     signIn: "ಸೈನ್ ಇನ್",
     signOut: "ಸೈನ್ ಔಟ್",
     dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",

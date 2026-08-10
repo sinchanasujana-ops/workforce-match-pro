@@ -3,6 +3,7 @@ export const hi = {
     findJobs: "नौकरी खोजें",
     hireWorkers: "मज़दूर हायर करें",
     register: "रजिस्टर करें",
+    myProfile: "मेरी प्रोफ़ाइल",
     signIn: "साइन इन",
     signOut: "साइन आउट",
     dashboard: "डैशबोर्ड",
