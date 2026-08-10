@@ -153,6 +153,10 @@
     border-color: var(--color-border);
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -164,4 +168,81 @@
     letter-spacing: -0.02em;
     font-weight: 700;
   }
+}
+
+/* ---------- Motion layer (lightweight, GPU-friendly) ---------- */
+@keyframes rz-fade-up {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes rz-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes rz-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+}
+@keyframes rz-blob {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -24px, 0) scale(1.08); }
+}
+
+@utility animate-fade-up {
+  animation: rz-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@utility animate-fade-in-soft {
+  animation: rz-fade-in 0.6s ease-out both;
+}
+@utility animate-float-slow {
+  animation: rz-float 6s ease-in-out infinite;
+}
+@utility animate-blob {
+  animation: rz-blob 14s ease-in-out infinite;
+}
+@utility hover-lift {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-elegant);
+  }
+}
+
+/* Scroll reveal (driven by <Reveal />) */
+.rz-reveal {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.rz-reveal-in {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Micro-interactions */
+button:not(:disabled),
+a[role="button"],
+[data-slot="button"]:not(:disabled) {
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+button:not(:disabled):active {
+  transform: scale(0.975);
+}
+input,
+textarea,
+select {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .rz-reveal { opacity: 1; transform: none; }
 }
