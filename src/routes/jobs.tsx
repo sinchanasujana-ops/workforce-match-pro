@@ -13,6 +13,9 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { MicButton } from "@/components/site/MicButton";
 import { LocationField } from "@/components/site/LocationField";
+import { Skeleton } from "@/components/ui/skeleton";
+import { RoleGate } from "@/components/site/RoleGate";
+import { Loader2 } from "lucide-react";
 
 type JobTypeValue = "full-time" | "part-time" | "daily-wage";
 
@@ -268,6 +271,12 @@ function JobsPage() {
   };
 
   return (
+    user && profile?.role === "employer" ? (
+      <RoleGate
+        title="Job search is for workers"
+        description="You're signed in with an employer account. Post a job and review the applications you receive from your employer dashboard."
+      />
+    ) : (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1">
@@ -354,7 +363,19 @@ function JobsPage() {
           </div>
 
           {loading ? (
-            <p className="mt-6 text-muted-foreground">{t("jobs.loading")}</p>
+            <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="rounded-2xl border border-border/70 bg-card p-6">
+                  <Skeleton className="h-11 w-11 rounded-xl" />
+                  <Skeleton className="mt-4 h-4 w-3/4" />
+                  <Skeleton className="mt-2 h-3 w-1/2" />
+                  <Skeleton className="mt-4 h-3 w-2/3" />
+                  <Skeleton className="mt-2 h-3 w-1/2" />
+                  <Skeleton className="mt-5 h-10 w-full" />
+                </div>
+              ))}
+              <p className="sr-only">{t("jobs.loading")}</p>
+            </div>
           ) : (
             <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{visible.map(renderCard)}</div>
           )}
@@ -379,6 +400,7 @@ function JobsPage() {
       </main>
       <Footer />
     </div>
+    )
   );
 }
 
