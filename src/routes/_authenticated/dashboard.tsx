@@ -1,14 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/useAuth";
-import { Briefcase, MapPin, IndianRupee, UserRound, Building2, Users } from "lucide-react";
-import { toast } from "sonner";
-import { ApplicantsPanel } from "@/components/dashboard/ApplicantsPanel";
+import { WorkerDashboard } from "@/components/dashboard/WorkerDashboard";
+import { EmployerDashboard } from "@/components/dashboard/EmployerDashboard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
