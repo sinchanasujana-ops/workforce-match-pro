@@ -220,5 +220,6 @@ function PostJobPage() {
       </main>
       <Footer />
     </div>
+    )
   );
 }
