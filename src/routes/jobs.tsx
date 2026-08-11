@@ -256,7 +256,9 @@ function JobsPage() {
                 <Check className="h-4 w-4" /> {t("jobs.applied")}
               </>
             ) : applying === job.id ? (
-              t("jobs.applying")
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> {t("jobs.applying")}
+              </>
             ) : (
               t("jobs.apply")
             )}
