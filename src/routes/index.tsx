@@ -16,6 +16,10 @@ import {
   Users,
   Briefcase,
   Languages,
+  Wrench,
+  HardHat,
+  Hammer,
+  Zap,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -54,6 +58,14 @@ function Hero() {
       <div className="animate-blob absolute right-0 top-0 -z-10 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
       <div className="animate-blob absolute -left-20 bottom-0 -z-10 h-96 w-96 rounded-full bg-primary/20 blur-3xl [animation-delay:-7s]" />
 
+      {/* Gently floating tool icons — motion only, no new colours */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <Wrench className="animate-float-slow absolute left-[6%] top-24 h-10 w-10 text-primary/15 [animation-delay:-1s]" />
+        <HardHat className="animate-float-slow absolute right-[12%] top-12 h-12 w-12 text-accent/25 [animation-delay:-3s]" />
+        <Hammer className="animate-float-slow absolute bottom-16 left-[22%] h-9 w-9 text-primary/15 [animation-delay:-5s]" />
+        <Zap className="animate-float-slow absolute bottom-24 right-[6%] h-10 w-10 text-accent/20 [animation-delay:-2s]" />
+      </div>
+
       <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-8 lg:px-8 lg:py-24">
         <div>
           <div className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
@@ -77,7 +89,7 @@ function Hero() {
                 I'm looking for work <ArrowRight className="ml-1 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="warm" size="xl">
+            <Button asChild variant="warm" size="xl" className="hover-scale-sm">
               <Link to="/post-job">I'm hiring workers</Link>
             </Button>
           </div>
