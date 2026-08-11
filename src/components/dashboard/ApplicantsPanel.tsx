@@ -3,8 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { MapPin, Phone, Star, UserRound, Check, X, Sparkles, FileText, ShieldCheck } from "lucide-react";
+import { MapPin, Phone, Star, UserRound, Check, X, Sparkles, FileText, ShieldCheck, Loader2 } from "lucide-react";
 import { KIND_LABEL, VerificationBadge, formatSize, openDocument, type WorkerDocument } from "@/components/worker/WorkerDocuments";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SkillMeter } from "@/components/site/SkillMeter";
+import { Reveal } from "@/components/site/Reveal";
 
 type ApplicationStatus = "pending" | "shortlisted" | "hired" | "rejected";
 
@@ -30,6 +33,13 @@ const STATUS_STYLES: Record<ApplicationStatus, string> = {
   shortlisted: "bg-accent/20 text-accent-foreground",
   hired: "bg-success/15 text-success",
   rejected: "bg-destructive/10 text-destructive",
+};
+
+const STATUS_LABELS: Record<ApplicationStatus, string> = {
+  pending: "Pending",
+  shortlisted: "Shortlisted",
+  hired: "Accepted",
+  rejected: "Rejected",
 };
 
 export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
@@ -100,11 +110,23 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
     }
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status } : r)));
     toast.success(
-      status === "hired" ? "Applicant hired 🎉" : status === "rejected" ? "Applicant rejected" : "Applicant shortlisted",
+      status === "hired" ? "Applicant accepted 🎉" : status === "rejected" ? "Applicant rejected" : "Applicant shortlisted",
     );
   };
 
-  if (loading) return <p className="mt-3 text-sm text-muted-foreground">Loading applicants…</p>;
+  if (loading)
+    return (
+      <ul className="mt-4 space-y-3">
+        {[0, 1].map((i) => (
+          <li key={i} className="rounded-2xl border border-border/70 bg-card p-5">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="mt-2 h-3 w-56" />
+            <Skeleton className="mt-4 h-2 w-full" />
+            <Skeleton className="mt-4 h-9 w-full" />
+          </li>
+        ))}
+      </ul>
+    );
 
   if (rows.length === 0)
     return (
@@ -115,8 +137,9 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
 
   return (
     <ul className="mt-4 space-y-3">
-      {rows.map((a) => (
-        <li key={a.id} className="rounded-2xl border border-border/70 bg-card p-5">
+      {rows.map((a, index) => (
+        <Reveal as="li" key={a.id} delay={Math.min(index, 6) * 60}>
+        <div className="hover-scale-sm rounded-2xl border border-border/70 bg-card p-5 shadow-soft">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="flex items-center gap-2 font-semibold">
@@ -155,8 +178,17 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
               </div>
               {a.message && <p className="mt-2 text-sm text-muted-foreground">“{a.message}”</p>}
             </div>
-            <Badge className={`capitalize hover:bg-inherit ${STATUS_STYLES[a.status]}`}>{a.status}</Badge>
+            <Badge className={`hover:bg-inherit ${STATUS_STYLES[a.status]}`}>
+              {a.status === "pending" && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+              {STATUS_LABELS[a.status]}
+            </Badge>
           </div>
+
+          <SkillMeter
+            className="mt-4 max-w-xs"
+            category={(a.worker?.category as "skilled" | "semi-skilled" | "unskilled" | null) ?? null}
+            years={a.worker?.experience_years ?? 0}
+          />
 
           <div className="mt-4 rounded-xl border border-border/70 bg-background p-3">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -193,7 +225,7 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
             )}
             {a.status !== "hired" && (
               <Button size="sm" variant="hero" disabled={busy === a.id} onClick={() => setStatus(a.id, "hired")}>
-                <Check className="h-4 w-4" /> Accept &amp; hire
+                {busy === a.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Accept
               </Button>
             )}
             {a.status !== "rejected" && (
@@ -202,7 +234,8 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
               </Button>
             )}
           </div>
-        </li>
+        </div>
+        </Reveal>
       ))}
     </ul>
   );

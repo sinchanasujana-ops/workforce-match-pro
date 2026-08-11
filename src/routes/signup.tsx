@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useAuth";
 import { WorkerDocuments } from "@/components/worker/WorkerDocuments";
 import { useTranslation } from "react-i18next";
+import { RoleGate } from "@/components/site/RoleGate";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
@@ -56,6 +57,8 @@ function SignupPage() {
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  const isEmployerAccount = !!user && profile?.role === "employer";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -83,6 +86,12 @@ function SignupPage() {
   };
 
   return (
+    isEmployerAccount ? (
+      <RoleGate
+        title="This page is for workers"
+        description="You're signed in with an employer account, so the worker profile form is hidden. Use your employer dashboard to post jobs and review applications."
+      />
+    ) : (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1">
@@ -177,5 +186,6 @@ function SignupPage() {
       </main>
       <Footer />
     </div>
+    )
   );
 }

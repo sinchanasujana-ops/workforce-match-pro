@@ -1,13 +1,15 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Briefcase, LogOut, LayoutDashboard } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 
 export function Navbar() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useProfile();
+  const isEmployer = profile?.role === "employer";
+  const isWorker = !!user && !isEmployer;
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -26,15 +28,21 @@ export function Navbar() {
           <span className="text-lg font-bold tracking-tight">Rozgaar</span>
         </Link>
         <nav className="hidden items-center gap-1 md:flex">
-          <Link to="/jobs" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "bg-secondary text-foreground" }}>
-            {t("nav.findJobs")}
-          </Link>
-          <Link to="/post-job" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "bg-secondary text-foreground" }}>
-            {t("nav.hireWorkers")}
-          </Link>
-          <Link to="/signup" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "bg-secondary text-foreground" }}>
-            {user ? t("nav.myProfile") : t("nav.register")}
-          </Link>
+          {!isEmployer && (
+            <Link to="/jobs" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "bg-secondary text-foreground" }}>
+              {t("nav.findJobs")}
+            </Link>
+          )}
+          {!isWorker && (
+            <Link to="/post-job" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "bg-secondary text-foreground" }}>
+              {t("nav.hireWorkers")}
+            </Link>
+          )}
+          {!isEmployer && (
+            <Link to="/signup" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "bg-secondary text-foreground" }}>
+              {user ? t("nav.myProfile") : t("nav.register")}
+            </Link>
+          )}
         </nav>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />

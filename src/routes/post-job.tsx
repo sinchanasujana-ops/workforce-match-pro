@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
+import { RoleGate } from "@/components/site/RoleGate";
 
 export const Route = createFileRoute("/post-job")({
   component: PostJobPage,
@@ -63,6 +64,8 @@ function PostJobPage() {
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  const isWorkerAccount = !!user && profile?.role === "worker";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -99,6 +102,12 @@ function PostJobPage() {
   };
 
   return (
+    isWorkerAccount ? (
+      <RoleGate
+        title="This page is for employers"
+        description="You're signed in with a worker account, so hiring tools are hidden. Head back to your worker dashboard to track applications and find jobs."
+      />
+    ) : (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1">
@@ -211,5 +220,6 @@ function PostJobPage() {
       </main>
       <Footer />
     </div>
+    )
   );
 }
