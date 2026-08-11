@@ -221,6 +221,40 @@
 }
 
 /* Micro-interactions */
+/* Card / button lift + tap feedback (motion only) */
+@utility hover-scale-sm {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+  &:hover {
+    transform: scale(1.02);
+  }
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+/* Animated proficiency meters */
+.rz-meter-bar {
+  transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rz-meter-circle {
+  background: conic-gradient(var(--primary) var(--rz-meter, 0%), var(--secondary) 0);
+  transition: --rz-meter 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@property --rz-meter {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+/* Dashboard tab / section switching */
+@keyframes rz-slide-fade {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@utility animate-tab-in {
+  animation: rz-slide-fade 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 button:not(:disabled),
 a[role="button"],
 [data-slot="button"]:not(:disabled) {
