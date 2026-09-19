@@ -1,9 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { MapPin, Phone, Star, UserRound, Check, X, Sparkles, FileText, ShieldCheck, Loader2 } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  Star,
+  UserRound,
+  Check,
+  X,
+  Sparkles,
+  FileText,
+  ShieldCheck,
+  Loader2,
+  Wand2,
+  ArrowDownWideNarrow,
+  Clock,
+  BadgeCheck,
+  Briefcase,
+} from "lucide-react";
+import { rankApplicantsForJob, type RankFactors } from "@/lib/ranking.functions";
 import { KIND_LABEL, VerificationBadge, formatSize, openDocument, type WorkerDocument } from "@/components/worker/WorkerDocuments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkillMeter } from "@/components/site/SkillMeter";
