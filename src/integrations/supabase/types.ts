@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      application_rankings: {
+        Row: {
+          application_id: string
+          created_at: string
+          factors: Json
+          id: string
+          job_id: string
+          reason: string
+          score: number
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          factors?: Json
+          id?: string
+          job_id: string
+          reason?: string
+          score?: number
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          factors?: Json
+          id?: string
+          job_id?: string
+          reason?: string
+          score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_rankings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_rankings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           created_at: string
