@@ -1,9 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { MapPin, Phone, Star, UserRound, Check, X, Sparkles, FileText, ShieldCheck, Loader2 } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  Star,
+  UserRound,
+  Check,
+  X,
+  Sparkles,
+  FileText,
+  ShieldCheck,
+  Loader2,
+  Wand2,
+  ArrowDownWideNarrow,
+  Clock,
+  BadgeCheck,
+  Briefcase,
+} from "lucide-react";
+import { rankApplicantsForJob, type RankFactors } from "@/lib/ranking.functions";
 import { KIND_LABEL, VerificationBadge, formatSize, openDocument, type WorkerDocument } from "@/components/worker/WorkerDocuments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkillMeter } from "@/components/site/SkillMeter";
@@ -42,11 +60,32 @@ const STATUS_LABELS: Record<ApplicationStatus, string> = {
   rejected: "Rejected",
 };
 
+type RankRow = { score: number; reason: string; factors: RankFactors };
+
+function fitBand(score: number) {
+  if (score >= 70) return { label: "Strong fit", className: "bg-success/15 text-success" };
+  if (score >= 45) return { label: "Good fit", className: "bg-accent/20 text-accent-foreground" };
+  return { label: "Weak fit", className: "bg-secondary text-secondary-foreground" };
+}
+
+function FactorChip({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-border/70 px-2 py-0.5 text-[11px] text-muted-foreground">
+      {icon}
+      {label}
+    </span>
+  );
+}
+
 export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
   const [rows, setRows] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [docsByWorker, setDocsByWorker] = useState<Record<string, WorkerDocument[]>>({});
+  const [ranks, setRanks] = useState<Record<string, RankRow>>({});
+  const [ranking, setRanking] = useState(false);
+  const [sortByFit, setSortByFit] = useState(true);
+  const rankJob = useServerFn(rankApplicantsForJob);
 
   useEffect(() => {
     if (jobIds.length === 0) {
@@ -93,12 +132,53 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
         }
         setDocsByWorker(grouped);
       }
+
+      const { data: saved } = await supabase
+        .from("application_rankings")
+        .select("application_id,score,reason,factors")
+        .in("job_id", jobIds);
+      if (cancelled) return;
+      const map: Record<string, RankRow> = {};
+      for (const r of saved ?? []) {
+        map[r.application_id] = {
+          score: r.score,
+          reason: r.reason,
+          factors: (r.factors ?? {}) as unknown as RankFactors,
+        };
+      }
+      setRanks(map);
     };
     void load();
     return () => {
       cancelled = true;
     };
   }, [jobIds.join(",")]);
+
+  const runRanking = async () => {
+    setRanking(true);
+    try {
+      const merged: Record<string, RankRow> = { ...ranks };
+      for (const jobId of jobIds) {
+        const res = await rankJob({ data: { jobId } });
+        for (const r of res.rankings) {
+          merged[r.application_id] = { score: r.score, reason: r.reason, factors: r.factors };
+        }
+      }
+      setRanks(merged);
+      setSortByFit(true);
+      toast.success("Applicants ranked by fit");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not rank applicants");
+    } finally {
+      setRanking(false);
+    }
+  };
+
+  const visibleRows = useMemo(() => {
+    if (!sortByFit) return rows;
+    return [...rows].sort((a, b) => (ranks[b.id]?.score ?? -1) - (ranks[a.id]?.score ?? -1));
+  }, [rows, ranks, sortByFit]);
+
 
   const setStatus = async (id: string, status: ApplicationStatus) => {
     setBusy(id);
@@ -136,8 +216,19 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
     );
 
   return (
+    <>
+    <div className="mt-4 flex flex-wrap items-center gap-2">
+      <Button size="sm" variant="hero" disabled={ranking} onClick={() => void runRanking()}>
+        {ranking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+        {ranking ? "Comparing applicants…" : "Rank applicants by fit"}
+      </Button>
+      <Button size="sm" variant="outline" onClick={() => setSortByFit((v) => !v)}>
+        {sortByFit ? <ArrowDownWideNarrow className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+        {sortByFit ? "Sorted: best fit first" : "Sorted: newest first"}
+      </Button>
+    </div>
     <ul className="mt-4 space-y-3">
-      {rows.map((a, index) => (
+      {visibleRows.map((a, index) => (
         <Reveal as="li" key={a.id} delay={Math.min(index, 6) * 60}>
         <div className="hover-scale-sm rounded-2xl border border-border/70 bg-card p-5 shadow-soft">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -149,6 +240,23 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
               <p className="text-sm text-muted-foreground">
                 Applied for <span className="font-medium text-foreground">{a.jobs?.title ?? "job"}</span>
               </p>
+              {ranking && !ranks[a.id] && <Skeleton className="mt-2 h-3 w-44" />}
+              {ranks[a.id] && (
+                <div className="mt-2 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className={`hover:bg-inherit ${fitBand(ranks[a.id]!.score).className}`}>
+                      Fit {ranks[a.id]!.score}/100 • {fitBand(ranks[a.id]!.score).label}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{ranks[a.id]!.reason}</p>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <FactorChip icon={<Briefcase className="h-3 w-3" />} label={`Skill ${ranks[a.id]!.factors?.skill ?? 0}/40`} />
+                    <FactorChip icon={<Star className="h-3 w-3" />} label={`Experience ${ranks[a.id]!.factors?.experience ?? 0}/25`} />
+                    <FactorChip icon={<BadgeCheck className="h-3 w-3" />} label={`Documents ${ranks[a.id]!.factors?.documents ?? 0}/20`} />
+                    <FactorChip icon={<MapPin className="h-3 w-3" />} label={`Location ${ranks[a.id]!.factors?.location ?? 0}/15`} />
+                  </div>
+                </div>
+              )}
               <div className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
                 {a.worker?.trade && (
                   <span className="flex items-center gap-1 capitalize">
