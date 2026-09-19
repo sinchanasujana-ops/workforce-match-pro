@@ -60,11 +60,32 @@ const STATUS_LABELS: Record<ApplicationStatus, string> = {
   rejected: "Rejected",
 };
 
+type RankRow = { score: number; reason: string; factors: RankFactors };
+
+function fitBand(score: number) {
+  if (score >= 70) return { label: "Strong fit", className: "bg-success/15 text-success" };
+  if (score >= 45) return { label: "Good fit", className: "bg-accent/20 text-accent-foreground" };
+  return { label: "Weak fit", className: "bg-secondary text-secondary-foreground" };
+}
+
+function FactorChip({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-border/70 px-2 py-0.5 text-[11px] text-muted-foreground">
+      {icon}
+      {label}
+    </span>
+  );
+}
+
 export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
   const [rows, setRows] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [docsByWorker, setDocsByWorker] = useState<Record<string, WorkerDocument[]>>({});
+  const [ranks, setRanks] = useState<Record<string, RankRow>>({});
+  const [ranking, setRanking] = useState(false);
+  const [sortByFit, setSortByFit] = useState(true);
+  const rankJob = useServerFn(rankApplicantsForJob);
 
   useEffect(() => {
     if (jobIds.length === 0) {
