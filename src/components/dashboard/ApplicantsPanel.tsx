@@ -216,8 +216,19 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
     );
 
   return (
+    <>
+    <div className="mt-4 flex flex-wrap items-center gap-2">
+      <Button size="sm" variant="hero" disabled={ranking} onClick={() => void runRanking()}>
+        {ranking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+        {ranking ? "Comparing applicants…" : "Rank applicants by fit"}
+      </Button>
+      <Button size="sm" variant="outline" onClick={() => setSortByFit((v) => !v)}>
+        {sortByFit ? <ArrowDownWideNarrow className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+        {sortByFit ? "Sorted: best fit first" : "Sorted: newest first"}
+      </Button>
+    </div>
     <ul className="mt-4 space-y-3">
-      {rows.map((a, index) => (
+      {visibleRows.map((a, index) => (
         <Reveal as="li" key={a.id} delay={Math.min(index, 6) * 60}>
         <div className="hover-scale-sm rounded-2xl border border-border/70 bg-card p-5 shadow-soft">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -229,6 +240,23 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
               <p className="text-sm text-muted-foreground">
                 Applied for <span className="font-medium text-foreground">{a.jobs?.title ?? "job"}</span>
               </p>
+              {ranking && !ranks[a.id] && <Skeleton className="mt-2 h-3 w-44" />}
+              {ranks[a.id] && (
+                <div className="mt-2 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className={`hover:bg-inherit ${fitBand(ranks[a.id]!.score).className}`}>
+                      Fit {ranks[a.id]!.score}/100 • {fitBand(ranks[a.id]!.score).label}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{ranks[a.id]!.reason}</p>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <FactorChip icon={<Briefcase className="h-3 w-3" />} label={`Skill ${ranks[a.id]!.factors?.skill ?? 0}/40`} />
+                    <FactorChip icon={<Star className="h-3 w-3" />} label={`Experience ${ranks[a.id]!.factors?.experience ?? 0}/25`} />
+                    <FactorChip icon={<BadgeCheck className="h-3 w-3" />} label={`Documents ${ranks[a.id]!.factors?.documents ?? 0}/20`} />
+                    <FactorChip icon={<MapPin className="h-3 w-3" />} label={`Location ${ranks[a.id]!.factors?.location ?? 0}/15`} />
+                  </div>
+                </div>
+              )}
               <div className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
                 {a.worker?.trade && (
                   <span className="flex items-center gap-1 capitalize">
