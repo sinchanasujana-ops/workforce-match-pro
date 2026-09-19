@@ -132,12 +132,53 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
         }
         setDocsByWorker(grouped);
       }
+
+      const { data: saved } = await supabase
+        .from("application_rankings")
+        .select("application_id,score,reason,factors")
+        .in("job_id", jobIds);
+      if (cancelled) return;
+      const map: Record<string, RankRow> = {};
+      for (const r of saved ?? []) {
+        map[r.application_id] = {
+          score: r.score,
+          reason: r.reason,
+          factors: (r.factors ?? {}) as unknown as RankFactors,
+        };
+      }
+      setRanks(map);
     };
     void load();
     return () => {
       cancelled = true;
     };
   }, [jobIds.join(",")]);
+
+  const runRanking = async () => {
+    setRanking(true);
+    try {
+      const merged: Record<string, RankRow> = { ...ranks };
+      for (const jobId of jobIds) {
+        const res = await rankJob({ data: { jobId } });
+        for (const r of res.rankings) {
+          merged[r.application_id] = { score: r.score, reason: r.reason, factors: r.factors };
+        }
+      }
+      setRanks(merged);
+      setSortByFit(true);
+      toast.success("Applicants ranked by fit");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not rank applicants");
+    } finally {
+      setRanking(false);
+    }
+  };
+
+  const visibleRows = useMemo(() => {
+    if (!sortByFit) return rows;
+    return [...rows].sort((a, b) => (ranks[b.id]?.score ?? -1) - (ranks[a.id]?.score ?? -1));
+  }, [rows, ranks, sortByFit]);
+
 
   const setStatus = async (id: string, status: ApplicationStatus) => {
     setBusy(id);
