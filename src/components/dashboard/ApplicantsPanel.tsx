@@ -346,5 +346,6 @@ export function ApplicantsPanel({ jobIds }: { jobIds: string[] }) {
         </Reveal>
       ))}
     </ul>
+    </>
   );
 }
